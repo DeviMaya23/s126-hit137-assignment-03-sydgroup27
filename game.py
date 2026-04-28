@@ -47,16 +47,13 @@ class Game:
         if self.life <= 0:
             return  # Ran out of lives, don't process guess
 
-        correct_guess = False
         for region in self.altered_regions:
             # Check if the guess is within the altered region
             if region[0] <= x <= region[0] + region[2] and region[1] <= y <= region[1] + region[3]:
                 if region in self.found_regions:
-                    correct_guess = True
                     return  # Already found this region, skip the guess
                 self.found_regions.append(region)
                 self.score += 1
                 return
 
-        if not correct_guess:
-            self.life -= 1  # Incorrect guess, lose a life
+        self.life -= 1  # Incorrect guess, lose a life
