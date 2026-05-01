@@ -15,6 +15,11 @@ class Game:
             the regions that have been found by the player.
             The tuple format is (x, y, width, height).
     Functions:
+        __init__(self, altered_regions: list[tuple[int, int, int, int]]): Initializes the game state.
+        start_game(self, altered_regions: list[tuple[int, int, int, int]]) -> None: Sets up the game state for a new game.
+        guess(self, x, y) -> None: Processes a player's guess at the given coordinates.
+        get_game_state(self) -> dict: Returns the current game state as a dictionary.
+        get_all_altered_regions(self) -> list[tuple[int, int, int, int]]: Returns a list of all altered regions in the game.
 
     """
     def __init__(self, altered_regions: list[tuple[int, int, int, int]]):
@@ -57,3 +62,24 @@ class Game:
                 return
 
         self.life -= 1  # Incorrect guess, lose a life
+
+    def get_game_state(self) -> dict:
+        """Returns the current game state as a dictionary.
+        Returns:
+            A dictionary containing the current score, lives, and found regions.
+        """
+        return {
+            'score': self.score,
+            'life': self.life,
+            'found_regions': self.found_regions
+        }
+    
+    def get_all_altered_regions(self) -> list[tuple[int, int, int, int]]:
+        """Returns a list of all altered regions in the game.
+        Returns:
+            A list of tuples representing all altered regions.
+            The tuple format is (x, y, width, height).
+        """
+        return self.altered_regions
+    
+    

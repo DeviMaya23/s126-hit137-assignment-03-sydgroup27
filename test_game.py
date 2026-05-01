@@ -6,7 +6,7 @@ from game import Game
 class TestGame:
     """Test suite for the Game class."""
 
-    def test_initialization(self):
+    def test_init_success(self):
         """Test that Game initializes correctly with altered regions."""
         altered_regions = [(10, 10, 50, 50)]
         game = Game(altered_regions)
@@ -16,7 +16,7 @@ class TestGame:
         assert game.altered_regions == altered_regions
         assert game.found_regions == []
 
-    def test_start_game(self):
+    def test_start_game_success(self):
         """Test that start_game resets life and found_regions but not score."""
         altered_regions = [(10, 10, 50, 50)]
         game = Game(altered_regions)
@@ -33,7 +33,7 @@ class TestGame:
         assert game.altered_regions == new_regions
         assert game.score == 5  # Score persists across games
 
-    def test_success_scenario_guess_within_region(self):
+    def test_guess_success(self):
         """Test successful guess within an altered region."""
         altered_regions = [(10, 10, 50, 50)]
         game = Game(altered_regions)
@@ -45,7 +45,7 @@ class TestGame:
         assert game.life == 3
         assert altered_regions[0] in game.found_regions
 
-    def test_second_successful_guess_scenario(self):
+    def test_guess_success_alternative_path(self):
         """Test that multiple successful guesses increment score correctly."""
         altered_regions = [(10, 10, 50, 50), (100, 100, 40, 40)]
         game = Game(altered_regions)
@@ -61,7 +61,7 @@ class TestGame:
         assert game.life == 3
         assert len(game.found_regions) == 2
 
-    def test_guess_already_found_region_no_life_lost(self):
+    def test_guess_success_already_found(self):
         """Test that guessing an already found region doesn't lose a life."""
         altered_regions = [(10, 10, 50, 50)]
         game = Game(altered_regions)
@@ -79,7 +79,7 @@ class TestGame:
         assert game.life == 3
         assert len(game.found_regions) == 1
 
-    def test_incorrect_guess_loses_life(self):
+    def test_guess_failed_incorrect(self):
         """Test that an incorrect guess loses a life."""
         altered_regions = [(10, 10, 50, 50)]
         game = Game(altered_regions)
@@ -91,7 +91,7 @@ class TestGame:
         assert game.life == 2
         assert game.found_regions == []
 
-    def test_multiple_incorrect_guesses(self):
+    def test_guess_failed_multiple_incorrect(self):
         """Test that multiple incorrect guesses reduce lives correctly."""
         altered_regions = [(10, 10, 50, 50)]
         game = Game(altered_regions)
@@ -105,7 +105,7 @@ class TestGame:
         game.guess(300, 300)
         assert game.life == 0
 
-    def test_no_processing_when_life_is_zero(self):
+    def test_guess_failed_life_zero(self):
         """Test that guesses are not processed when life is 0 or less."""
         altered_regions = [(10, 10, 50, 50)]
         game = Game(altered_regions)
@@ -123,7 +123,7 @@ class TestGame:
         assert game.life == 0
         assert game.found_regions == []
 
-    def test_boundary_conditions_guess_at_region_edges(self):
+    def test_guess_success_boundary_edges(self):
         """Test guessing at the boundaries of regions."""
         # Region: (10, 10, 50, 50) means x: 10-60, y: 10-60
         altered_regions = [(10, 10, 50, 50)]
@@ -142,7 +142,7 @@ class TestGame:
         assert game.score == 2
         assert game.life == 3
 
-    def test_multiple_regions_different_guesses(self):
+    def test_guess_success_alternative_multiple_regions(self):
         """Test game with multiple regions and mixed correct/incorrect guesses."""
         altered_regions = [(10, 10, 50, 50), (100, 100, 40, 40), (200, 200, 30, 30)]
         game = Game(altered_regions)
@@ -167,7 +167,7 @@ class TestGame:
         assert game.score == 3
         assert game.life == 2
 
-    def test_score_persists_across_multiple_games(self):
+    def test_start_game_success_score_persists(self):
         """Test that score persists across multiple game sessions."""
         altered_regions1 = [(10, 10, 50, 50)]
         game = Game(altered_regions1)
@@ -187,3 +187,15 @@ class TestGame:
         # Second game
         game.guess(110, 110)
         assert game.score == 2
+
+    def test_getters_success(self):
+        """Happy-path test for `get_game_state` and `get_all_altered_regions`."""
+        altered_regions = [(5, 5, 10, 10)]
+        game = Game(altered_regions)
+
+        state = game.get_game_state()
+        assert state["score"] == 0
+        assert state["life"] == 3
+        assert state["found_regions"] == []
+
+        assert game.get_all_altered_regions() == altered_regions
