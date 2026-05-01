@@ -14,6 +14,7 @@ class Game:
         found_regions (list[tuple[int, int, int, int]]): A list of tuples representing
             the regions that have been found by the player.
             The tuple format is (x, y, width, height).
+        revealed (bool): A flag to indicate if player has chosen to reveal all altered regions.
     Functions:
         __init__(self, altered_regions: list[tuple[int, int, int, int]]): Initializes the game state.
         start_game(self, altered_regions: list[tuple[int, int, int, int]]) -> None: Sets up the game state for a new game.
@@ -42,6 +43,7 @@ class Game:
         self.life = 3
         self.altered_regions = altered_regions
         self.found_regions = []
+        self.revealed = False
 
     def guess(self, x, y) -> None:
         """Processes a player's guess at the given coordinates.
@@ -49,8 +51,8 @@ class Game:
             x: The x-coordinate of the guess.
             y: The y-coordinate of the guess.
         """
-        if self.life <= 0:
-            return  # Ran out of lives, don't process guess
+        if self.life <= 0 or self.revealed:
+            return  # Ran out of lives/game is done, don't process guess
 
         for region in self.altered_regions:
             # Check if the guess is within the altered region
@@ -81,5 +83,9 @@ class Game:
             The tuple format is (x, y, width, height).
         """
         return self.altered_regions
+
+    def reveal(self) -> None:
+        """Reveals all altered regions to the player."""
+        self.revealed = True
     
     
