@@ -73,7 +73,8 @@ class Game:
         return {
             'score': self.score,
             'life': self.life,
-            'found_regions': self.found_regions
+            'found_regions': self.found_regions,
+            'revealed': self.revealed
         }
     
     def get_all_altered_regions(self) -> list[tuple[int, int, int, int]]:
