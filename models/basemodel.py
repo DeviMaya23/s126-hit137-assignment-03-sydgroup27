@@ -15,4 +15,4 @@ class BaseModel(ABC):
 
     @abstractmethod
     def predict(self, image_path: str):
-        raise NotImplementedError
+       raise NotImplementedError
