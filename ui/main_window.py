@@ -4,8 +4,6 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 from PIL import ImageTk
 
-from config.settings import AVAILABLE_MODELS
-from models.model_factory import get_model
 from utils.image_utils import process_image
 
 
@@ -21,10 +19,8 @@ class MainWindow(tk.Tk):
         self.resizable(False, False)
 
         # ================= VARIABLES =================
-        self.selected_model_key = tk.StringVar(value="vit")
         self.input_mode = tk.StringVar(value="image")
 
-        self.loaded_model = None
         self.current_image_path = None
         self.tk_preview_image = None
 
@@ -66,16 +62,6 @@ class MainWindow(tk.Tk):
         )
 
         menubar.add_cascade(label="View", menu=viewmenu)
-
-        # MODELS
-        modelmenu = tk.Menu(menubar, tearoff=0)
-
-        modelmenu.add_command(
-            label="Load Model",
-            command=self.load_model
-        )
-
-        menubar.add_cascade(label="Models", menu=modelmenu)
 
         # HELP
         helpmenu = tk.Menu(menubar, tearoff=0)
@@ -149,46 +135,6 @@ class MainWindow(tk.Tk):
             padx=30
         )
 
-        # MODEL COMBOBOX
-        self.model_combo = tk.StringVar(value="ViT (Classify)")
-
-        model_dropdown = tk.OptionMenu(
-            header,
-            self.model_combo,
-            "ViT (Classify)",
-            "DeiT (Classify)",
-            "ResNet (Classify)",
-            "Stable Diffusion (text2image)"
-        )
-
-        model_dropdown.config(
-            bg="#555555",
-            fg="white",
-            font=("Arial", 11),
-            width=25
-        )
-
-        model_dropdown.pack(
-            side="right",
-            padx=10
-        )
-
-        # LOAD MODEL BUTTON
-        load_btn = tk.Button(
-            header,
-            text="Load Model",
-            command=self.load_model,
-            bg="#444444",
-            fg="white",
-            font=("Arial", 11, "bold"),
-            width=12
-        )
-
-        load_btn.pack(
-            side="right",
-            padx=10
-        )
-
         # BROWSE BUTTON
         browse_btn = tk.Button(
             header,
@@ -242,83 +188,6 @@ class MainWindow(tk.Tk):
             padx=10
         )
 
-        # RADIO BUTTONS
-        radio_frame = tk.Frame(
-            left_frame,
-            bg="#3a3a3a"
-        )
-
-        radio_frame.pack(anchor="w")
-
-        tk.Radiobutton(
-            radio_frame,
-            text="Text",
-            variable=self.input_mode,
-            value="text",
-            bg="#3a3a3a",
-            fg="white",
-            selectcolor="#444444",
-            font=("Arial", 11)
-        ).pack(side="left", padx=10)
-
-        tk.Radiobutton(
-            radio_frame,
-            text="Image",
-            variable=self.input_mode,
-            value="image",
-            bg="#3a3a3a",
-            fg="white",
-            selectcolor="#444444",
-            font=("Arial", 11)
-        ).pack(side="left")
-
-        # TEXT BOX
-        self.prompt_box = tk.Text(
-            left_frame,
-            bg="#1e1e1e",
-            fg="white",
-            insertbackground="white",
-            font=("Arial", 12),
-            height=8
-        )
-
-        self.prompt_box.pack(
-            fill="x",
-            pady=10
-        )
-
-        # BUTTONS
-        button_frame = tk.Frame(
-            left_frame,
-            bg="#3a3a3a"
-        )
-
-        button_frame.pack(anchor="w", pady=10)
-
-        run_btn = tk.Button(
-            button_frame,
-            text="Run Model",
-            command=self.run_model,
-            bg="#008CBA",
-            fg="white",
-            font=("Arial", 11, "bold"),
-            width=15
-        )
-
-        run_btn.pack(side="left", padx=5)
-
-        clear_btn = tk.Button(
-            button_frame,
-            text="Clear",
-            command=self.clear_output,
-            bg="#666666",
-            fg="white",
-            font=("Arial", 11, "bold"),
-            width=15
-        )
-
-        clear_btn.pack(side="left", padx=5)
-
         # IMAGE PREVIEW
         self.preview_canvas = tk.Canvas(
             left_frame,
@@ -349,21 +218,6 @@ class MainWindow(tk.Tk):
             padx=10
         )
 
-        # OUTPUT BOX
-        self.output_box = tk.Text(
-            right_frame,
-            bg="#1e1e1e",
-            fg="white",
-            insertbackground="white",
-            font=("Arial", 12),
-            height=10
-        )
-
-        self.output_box.pack(
-            fill="x",
-            pady=10
-        )
-
         # OUTPUT IMAGE
         self.output_canvas = tk.Canvas(
             right_frame,
@@ -390,42 +244,6 @@ class MainWindow(tk.Tk):
         self.attributes("-fullscreen", False)
 
     # =========================================================
-    # MODEL FUNCTIONS
-    # =========================================================
-
-    def _parse_model_key(self):
-
-        selection = self.model_combo.get()
-
-        if "deit" in selection.lower():
-            return "deit"
-
-        if "resnet" in selection.lower():
-            return "resnet"
-
-        if "diffusion" in selection.lower():
-            return "text2image"
-
-        return "vit"
-
-    def load_model(self):
-
-        model_key = self._parse_model_key()
-
-        try:
-            self.loaded_model = get_model(model_key)
-
-            self._append_output(
-                f"Loaded model: {model_key}"
-            )
-
-        except Exception as exc:
-
-            self._append_output(
-                f"Error loading model: {exc}"
-            )
-
-    # =========================================================
     # IMAGE BROWSING
     # =========================================================
 
@@ -444,105 +262,7 @@ class MainWindow(tk.Tk):
 
         self._show_preview(file_path)
 
-        self._append_output(
-            f"Selected image: {file_path}"
-        )
 
-    # =========================================================
-    # RUN MODEL
-    # =========================================================
-
-    def run_model(self):
-
-        if not self.loaded_model:
-
-            self._append_output(
-                "Please load a model first."
-            )
-
-            return
-
-        model_key = self._parse_model_key()
-
-        # TEXT TO IMAGE
-        if model_key == "text2image":
-
-            prompt = self.prompt_box.get(
-                "1.0",
-                tk.END
-            ).strip()
-
-            if not prompt:
-
-                self._append_output(
-                    "Please enter a prompt."
-                )
-
-                return
-
-            image = self.loaded_model.predict(prompt)
-
-            self.tk_preview_image = ImageTk.PhotoImage(
-                image.resize((500, 350))
-            )
-
-            self.output_canvas.delete("all")
-
-            self.output_canvas.create_image(
-                0,
-                0,
-                anchor="nw",
-                image=self.tk_preview_image
-            )
-
-            self._append_output(
-                "Generated image from prompt."
-            )
-
-            return
-
-        # IMAGE CLASSIFICATION
-        if self.input_mode.get() == "image":
-
-            if not self.current_image_path:
-
-                self._append_output(
-                    "Please browse and select an image."
-                )
-
-                return
-
-            results = self.loaded_model.predict(
-                self.current_image_path
-            )
-
-        else:
-
-            self._append_output(
-                "Text mode not supported for classification."
-            )
-
-            return
-
-        if results:
-            self._render_predictions(results)
-
-    # =========================================================
-    # OUTPUT FUNCTIONS
-    # =========================================================
-
-    def clear_output(self):
-
-        self.output_box.delete("1.0", tk.END)
-
-    def _append_output(self, text):
-
-        self.output_box.insert(
-            tk.END,
-            text + "\n"
-        )
-
-        self.output_box.see(tk.END)
 
     # =========================================================
     # IMAGE DISPLAY
@@ -565,20 +285,3 @@ class MainWindow(tk.Tk):
             anchor="nw",
             image=self.tk_preview_image
         )
-
-    # =========================================================
-    # PREDICTIONS
-    # =========================================================
-
-    def _render_predictions(self, results):
-
-        self._append_output("Predictions:")
-
-        for pred in results:
-
-            label = pred.get("label")
-            score = pred.get("score")
-
-            self._append_output(
-                f"- {label}: {score:.4f}"
-            )
