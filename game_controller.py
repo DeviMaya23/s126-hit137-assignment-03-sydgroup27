@@ -3,6 +3,7 @@
 from game import Game
 from game_ui import GameUI
 from image_processor import ImageProcessor
+from PIL import Image, ImageTk
 
 
 class GameController:
@@ -13,10 +14,24 @@ class GameController:
         image_processor (ImageProcessor): The image processor that applies alterations.
     """
     def __init__(self):
-        self.game = Game()
-        self.ui = GameUI()
-        self.image_processor = ImageProcessor()
+        # self.game = Game()
+        self.ui = GameUI(self)
+        # self.image_processor = ImageProcessor()
 
     def handle_click(self, x: int, y: int) -> None:
         """Handles a click on the modified image at the given coordinates."""
         pass
+
+    def on_image_selected(self, image_path: str) -> None:
+        """Handles a new image being selected by the user."""
+
+        # TODO: validation of image
+
+
+
+        image = Image.open(image_path).convert("RGB")
+        image = image.resize((500, 350))
+        img = ImageTk.PhotoImage(image)
+        
+        
+        self.ui.update_display_new_image(img)
