@@ -1,31 +1,32 @@
-# will contains all the model factory classes
-# from resnet_model import ResNetModel
+# models/model_factory.py
+
 from .vit_model import ViTModel
-from config.settings import AVAILABLE_MODELS
 from .text2image_model import Text2ImageModel
 
+from config.settings import AVAILABLE_MODELS
 
 
 def get_model(model_key: str):
-    if model_key == "vit":
-        return ViTModel(AVAILABLE_MODELS["vit"])
-    
-    # text2image model
-    if model_key == "text2image":
-        return Text2ImageModel(AVAILABLE_MODELS["text2image"])
-    
-    
+
     models = {
-        "vit": ViTModel,
-    # "resnet": ResNetModel,
-        "text2image": Text2ImageModel
+
+        "vit": lambda: ViTModel(
+            AVAILABLE_MODELS["vit"]
+        ),
+
+        "text2image": lambda: Text2ImageModel(
+            AVAILABLE_MODELS["text2image"]
+        ),
 
     }
-    
-    # error handling for unknown model key
-    if model_key in models:
-        raise ValueError(f"UJnknown model key: {model_key} . Available models are: {list(models.keys())}"
-    )
 
+    # ERROR HANDLING
+    if model_key not in models:
 
+        raise ValueError(
+            f"Unknown model key: {model_key}. "
+            f"Available models are: {list(models.keys())}"
+        )
+
+    # RETURN MODEL
     return models[model_key]()
