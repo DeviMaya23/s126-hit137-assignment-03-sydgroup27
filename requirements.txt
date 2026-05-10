@@ -7,3 +7,8 @@ requests
 
 diffusers
 # tkinter is a built-in package (kept for reference)
+
+#opencv for image
+opencv-python
+#visualization
+matplotlib
