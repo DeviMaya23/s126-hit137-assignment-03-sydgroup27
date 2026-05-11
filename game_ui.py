@@ -12,7 +12,7 @@ class GameUI(tk.Tk):
         self.controller = controller
 
         # ================= WINDOW =================
-        self.title("Matching Game")
+        self.title("Pictomatchy")
         self.geometry("1200x700")
         self.configure(bg="#2b2b2b")
         self.resizable(False, False)
@@ -24,10 +24,12 @@ class GameUI(tk.Tk):
         self.life_var = tk.StringVar(value="Life: 0")
         self.remaining_var = tk.StringVar(value="Remaining: 0")
         self.score_var = tk.StringVar(value="Score: 0")
+        self.status_var = tk.StringVar(value="Welcome to Pictomatchy! Start by clicking the Browse button (Ctrl+O) to select an image.")
 
         # ================= UI =================
         self._build_menu()
         self._build_header()
+        self._build_status_bar()
         self._build_body()
 
         # ================= FULLSCREEN =================
@@ -35,6 +37,7 @@ class GameUI(tk.Tk):
 
         self.bind("<F11>", lambda e: self.toggle_fullscreen())
         self.bind("<Escape>", lambda e: self.exit_fullscreen())
+        self.bind("<Control-o>", lambda e: self._on_browse_click())
 
     def _build_menu(self):
         """Builds the menu bar with File, View, and Help options."""
@@ -67,7 +70,11 @@ class GameUI(tk.Tk):
             label="About",
             command=lambda: messagebox.showinfo(
                 "About",
-                "Matching Game"
+                """Pictomatchy - Spot the Difference Game
+                Upload an image and find 5 altered spots by clicking on the right-side image.
+
+                Developed by Sydney Group 27 for S126 HIT137 Assignment 3.
+                """
             )
         )
 
@@ -240,6 +247,34 @@ class GameUI(tk.Tk):
         self.output_canvas.pack(pady=10)
         self.output_canvas.bind("<Button-1>", self._on_canvas_click)
 
+    def _build_status_bar(self):
+        """Builds a status bar frame at the bottom of the window."""
+        status_bar = tk.Frame(
+            self,
+            bg="#333333",
+            height=25
+        )
+
+        status_bar.pack(
+            fill="x",
+            side="bottom"
+        )
+        status_bar.pack_propagate(False)
+
+        status_label = tk.Label(
+            status_bar,
+            textvariable=self.status_var,
+            fg="white",
+            bg="#333333",
+            font=("Arial", 12)
+        )
+
+        status_label.pack(
+            side="left",
+            padx=20,
+            pady=3
+        )
+
     def toggle_fullscreen(self):
 
         self.is_fullscreen = not self.is_fullscreen
@@ -285,6 +320,10 @@ class GameUI(tk.Tk):
         
 
     def update_display(self, score: int, life: int, remaining: int, found_regions: list, revealed_regions: list, revealed: bool, game_over: bool) -> None:
+        """
+        Updates all relevant UI elements based on the current game state.
+        """
+        
         self.life_var.set(f"Life: {life}")
         self.remaining_var.set(f"Remaining: {remaining}")
         self.score_var.set(f"Score: {score}")
@@ -294,10 +333,22 @@ class GameUI(tk.Tk):
         else:
             self.reveal_btn.config(state="normal")
 
+    
+    def update_status_bar(self, message: str) -> None:
+        """Updates the status bar with the given message."""
+        self.status_var.set(message)
+
 
     def draw_circle(self, x: int, y: int, color: str):
-        """Draws a circle on the both canvas
-            at the specified coordinates with the given color."""
+        """
+        Draws a circle on the both canvas.
+        Circle size is fixed at 50x50. 
+        Coordinates (x, y) represent the center of the circle.
+        Args:
+            x: The x-coordinate of the center of the circle.
+            y: The y-coordinate of the center of the circle.
+            color: The color of the circle outline.
+        """
         self.preview_canvas.create_oval(
             x-25, y-25, x+25, y+25,
             outline=color,
@@ -311,6 +362,13 @@ class GameUI(tk.Tk):
         )
     
     def show_popup(self, title: str, message: str, kind: str = "info") -> None:
+        """
+        Displays a popup message to the user.
+        Args:
+            title: The title of the popup window.
+            message: The message to display in the popup.
+            kind: The type of popup to display ("info", "warning", "error").
+        """
         match kind:
             case "warning": messagebox.showwarning(title, message)
             case "error": messagebox.showerror(title, message)
@@ -345,11 +403,13 @@ class GameUI(tk.Tk):
         self.controller.on_image_selected(file_path)
 
     def _on_reveal_click(self):
-        """Reveals all altered regions to the player.
+        """
+        Reveals all altered regions to the player.
         Ends the game and disables further guesses.
         """
         self.reveal_btn.config(state="disabled")
         self.controller.reveal_altered_regions()
+        self.update_status_bar("All altered regions revealed! You can start a new game with the Browse button (Ctrl+O).")
 
     
 
