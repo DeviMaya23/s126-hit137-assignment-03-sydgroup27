@@ -1,8 +1,13 @@
 """A class to represent image processor used by the game.
 """
-from image_processor_alteration import Alteration, ColourShift
+from image_processor_alteration import (
+    Alteration, 
+    ColourShift,
+    BlurEffect,
+    BrightnessChange)
 import numpy as np
-
+import cv2 as cv
+import random
 
 class ImageProcessor:
     """A class to represent the image processor used by the game.
@@ -22,11 +27,58 @@ class ImageProcessor:
         Args:
             image_path (str): The file path of the image to be processed.
         """
-        self.alterations = [ColourShift()]  # add 2 more
+        #Load the image
+        self.original_image = cv.imread(image_path)
+       
+        if self.original_imange is None:
+            raise ValueError(f"Could not load image from path: {image_path}")
+        
+        #copy original image for processing
+        self.processed_image = self.original_image.copy()
 
-        # TODO: load image path, put image, initialise altered region list
-        # TODO: alteration logic here (region to to apply, randomised alteration types)
+        #store altered regions
+        self.altered_regions = [] 
 
+ 
+        self.alterations = [
+            ColourShift(), 
+            BlurEffect(),
+            BrightnessChange()
+            ]  
+
+       # Apply 5 random alterations
+        self.apply_random_alterations(5)
+    
+    def apply_random_alterations(self, num_alterations: int):
+        """Applies a specified number of random alterations to the image.
+        Args:
+            num_alterations (int): The number of random alterations to apply.
+        """
+        height, width = self.processed_image.shape[:2]
+        for _ in range(num_alterations):
+
+            # Random region size
+            region_width = random.randint(40, 80)
+            region_height = random.randint(40, 80)
+
+            # Random position
+            x = random.randint(0, width - region_width)
+            y = random.randint(0, height - region_height)
+
+            # Save region
+            self.altered_regions.append(
+                (x, y, region_width, region_height)
+            )
+
+            region = (x, y, region_width, region_height)
+
+            alteration = random.choice(self.alterations)
+
+            self.processed_image = alteration.apply(
+                self.processed_image,
+                region
+           )
+          
     def get_original_image(self) -> np.ndarray:
         return self.original_image
 
