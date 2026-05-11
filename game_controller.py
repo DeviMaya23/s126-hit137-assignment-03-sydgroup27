@@ -15,7 +15,7 @@ class GameController:
     def __init__(self):
         self.game = Game([])
         self.ui = GameUI(self)
-        # self.image_processor = ImageProcessor()
+        self.image_processor = ImageProcessor()
 
     def handle_click(self, x: int, y: int) -> None:
         """Handles a click on the modified image at the given coordinates."""
@@ -47,13 +47,15 @@ class GameController:
     def on_image_selected(self, image_path: str) -> None:
         """Handles a new image being selected by the user."""
 
-        # TODO: validation of image
-
-        image_processor = ImageProcessor(image_path)
+        try:
+            self.image_processor.load_image(image_path)
+        except ValueError as e:
+            self.ui.show_popup("Could not load image, please select a valid image file (.jpg, .jpeg, .png, .bmp).")
+            return
     
-        img = image_processor.get_original_image()
-        altered_img = image_processor.get_processed_image()
-        altered_regions = image_processor.get_altered_regions()
+        img = self.image_processor.get_original_image()
+        altered_img = self.image_processor.get_processed_image()
+        altered_regions = self.image_processor.get_altered_regions()
 
         self.game.start_game(altered_regions)
         self.ui.load_new_images(img, altered_img)

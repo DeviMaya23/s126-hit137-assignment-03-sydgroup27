@@ -1,5 +1,7 @@
 """A class to represent image processor used by the game.
 """
+from pathlib import Path
+
 from image_processor_alteration import (
     Alteration, 
     ColourShift,
@@ -22,7 +24,15 @@ class ImageProcessor:
     altered_regions: list[tuple[int, int, int, int]]
     alterations: list[Alteration]
 
-    def __init__(self, image_path: str):
+    def __init__(self):
+        self.altered_regions = []
+        self.alterations = [
+            ColourShift(), 
+            BlurEffect(),
+            BrightnessChange()
+            ]  
+
+    def load_image(self, image_path: str) -> None:
         """Initialises the image processor with both original image and
         processed image, and the list of altered regions.
         Args:
@@ -46,13 +56,6 @@ class ImageProcessor:
 
         #store altered regions
         self.altered_regions = [] 
-
- 
-        self.alterations = [
-            ColourShift(), 
-            BlurEffect(),
-            BrightnessChange()
-            ]  
 
        # Apply 5 random alterations
         self.apply_random_alterations(5)
@@ -103,3 +106,4 @@ class ImageProcessor:
         img = img.copy()
         img.thumbnail((max_w, max_h), Image.LANCZOS)
         return img
+    
