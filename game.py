@@ -35,7 +35,6 @@ class Game:
                 The tuple format is (x, y, width, height)
         """
         self.score = 0
-        # self.start_game(altered_regions)
 
     def start_game(self, altered_regions: list[tuple[int, int, int, int]]) -> None:
         """Initialises the game state for a new game.
@@ -55,7 +54,7 @@ class Game:
             x: The x-coordinate of the guess.
             y: The y-coordinate of the guess.
         """
-        if self.life <= 0 or self.revealed:
+        if self.life <= 0 or self.revealed or self.remaining <= 0:
             return GuessResult.GAME_OVER  # Game is already over, ignore further guesses
         for region in self.altered_regions:
             # Check if the guess is within the altered region
@@ -65,9 +64,14 @@ class Game:
                 self.found_regions.append(region)
                 self.score += 1
                 self.remaining -= 1
+
+                if self.remaining == 0:
+                    return GuessResult.WIN  # All regions found, game over
                 return GuessResult.CORRECT
 
         self.life -= 1  # Incorrect guess, lose a life
+        if self.life <= 0:
+            return GuessResult.LOSE  # No lives left, game over
         return GuessResult.INCORRECT
 
     def get_game_state(self) -> dict:
@@ -81,7 +85,8 @@ class Game:
             'remaining': self.remaining,
             'found_regions': self.found_regions,
             'revealed_regions': self.altered_regions if self.revealed else [],
-            'revealed': self.revealed
+            'revealed': self.revealed,
+            'game_over': self.life <= 0 or self.revealed or self.remaining <= 0
         }
     
     def get_all_altered_regions(self) -> list[tuple[int, int, int, int]]:
@@ -94,6 +99,7 @@ class Game:
 
     def reveal(self) -> None:
         """Reveals all altered regions to the player."""
+        self.remaining = 0
         self.revealed = True
     
     

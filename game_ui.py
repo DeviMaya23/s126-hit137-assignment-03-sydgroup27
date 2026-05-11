@@ -136,7 +136,7 @@ class GameUI(tk.Tk):
         browse_btn = tk.Button(
             header,
             text="Browse",
-            command=self.browse_image,
+            command=self._on_browse_click,
             bg="#555555",
             fg="white",
             font=("Arial", 12, "bold"),
@@ -144,6 +144,23 @@ class GameUI(tk.Tk):
         )
 
         browse_btn.pack(
+            side="right",
+            padx=20
+        )
+        
+        # BUTTON2
+        self.reveal_btn = tk.Button(
+            header,
+            text="Reveal",
+            command=self._on_reveal_click,
+            bg="#555555",
+            fg="white",
+            font=("Arial", 12, "bold"),
+            width=15,
+            state="disabled"
+        )
+
+        self.reveal_btn.pack(
             side="right",
             padx=20
         )
@@ -232,25 +249,6 @@ class GameUI(tk.Tk):
 
         self.is_fullscreen = False
         self.attributes("-fullscreen", False)
-
-    # =========================================================
-    # IMAGE BROWSING
-    # =========================================================
-
-    def browse_image(self):
-        """
-        Opens a file dialog for the user to select an image,
-        then passes it to controller for processing.
-        """
-        file_path = filedialog.askopenfilename(
-            filetypes=[
-                ("Image files", "*.jpg *.jpeg *.png")
-            ]
-        )
-        if not file_path:
-            return
-        self.controller.on_image_selected(file_path)
-
     # =========================================================
     # DISPLAY
     # =========================================================
@@ -286,10 +284,37 @@ class GameUI(tk.Tk):
         )
         
 
-    def update_display(self, score: int, life: int, remaining: int, found_regions: list, revealed_regions: list, revealed: bool) -> None:
+    def update_display(self, score: int, life: int, remaining: int, found_regions: list, revealed_regions: list, revealed: bool, game_over: bool) -> None:
         self.life_var.set(f"Life: {life}")
         self.remaining_var.set(f"Remaining: {remaining}")
         self.score_var.set(f"Score: {score}")
+
+        if game_over:
+            self.reveal_btn.config(state="disabled")
+        else:
+            self.reveal_btn.config(state="normal")
+
+
+    def draw_circle(self, x: int, y: int, color: str):
+        """Draws a circle on the both canvas
+            at the specified coordinates with the given color."""
+        self.preview_canvas.create_oval(
+            x-25, y-25, x+25, y+25,
+            outline=color,
+            width=2
+        )
+
+        self.output_canvas.create_oval(
+            x-25, y-25, x+25, y+25,
+            outline=color,
+            width=2
+        )
+    
+    def show_popup(self, title: str, message: str, kind: str = "info") -> None:
+        match kind:
+            case "warning": messagebox.showwarning(title, message)
+            case "error": messagebox.showerror(title, message)
+            case _: messagebox.showinfo(title, message) 
 
     # =========================================================
     # EVENT HANDLERS
@@ -302,13 +327,29 @@ class GameUI(tk.Tk):
         x1, y1, x2, y2 = self.image_bounds
         if not (x1 <= event.x <= x2 and y1 <= event.y <= y2):
             return  # ignore clicks on non image area
-        self.controller.handle_click(event.x - x1, event.y - y1) # adjust click coordinates to be relative to the image
+        self.controller.handle_click(event.x, event.y)
     
-    def draw_circle(self, x: int, y: int, color: str):
-        """Draws a circle on the altered image canvas
-            at the specified coordinates with the given color."""
-        self.output_canvas.create_oval(
-            x-25, y-25, x+25, y+25,
-            outline=color,
-            width=2
+    
+    def _on_browse_click(self):
+        """
+        Opens a file dialog for the user to select an image,
+        then passes it to controller for processing.
+        """
+        file_path = filedialog.askopenfilename(
+            filetypes=[
+                ("Image files", "*.jpg *.jpeg *.png *.bmp"),
+            ]
         )
+        if not file_path:
+            return
+        self.controller.on_image_selected(file_path)
+
+    def _on_reveal_click(self):
+        """Reveals all altered regions to the player.
+        Ends the game and disables further guesses.
+        """
+        self.reveal_btn.config(state="disabled")
+        self.controller.reveal_altered_regions()
+
+    
+
