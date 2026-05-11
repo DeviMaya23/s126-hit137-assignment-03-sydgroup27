@@ -2,6 +2,9 @@
 """
 
 
+from enums import GuessResult
+
+
 class Game:
     """
     A class to represent the game state.
@@ -18,7 +21,7 @@ class Game:
     Functions:
         __init__(self, altered_regions: list[tuple[int, int, int, int]]): Initializes the game state.
         start_game(self, altered_regions: list[tuple[int, int, int, int]]) -> None: Sets up the game state for a new game.
-        guess(self, x, y) -> None: Processes a player's guess at the given coordinates.
+        guess(self, x, y) -> GuessResult: Processes a player's guess at the given coordinates.
         get_game_state(self) -> dict: Returns the current game state as a dictionary.
         get_all_altered_regions(self) -> list[tuple[int, int, int, int]]: Returns a list of all altered regions in the game.
 
@@ -46,26 +49,26 @@ class Game:
         self.found_regions = []
         self.revealed = False
 
-    def guess(self, x, y) -> None:
+    def guess(self, x, y) -> GuessResult:
         """Processes a player's guess at the given coordinates.
         Args:
             x: The x-coordinate of the guess.
             y: The y-coordinate of the guess.
         """
         if self.life <= 0 or self.revealed:
-            return  # Ran out of lives/game is done, don't process guess
-
+            return GuessResult.GAME_OVER  # Game is already over, ignore further guesses
         for region in self.altered_regions:
             # Check if the guess is within the altered region
             if region[0] <= x <= region[0] + region[2] and region[1] <= y <= region[1] + region[3]:
                 if region in self.found_regions:
-                    return  # Already found this region, skip the guess
+                    return GuessResult.ALREADY_FOUND  # Already found this region, skip the guess
                 self.found_regions.append(region)
                 self.score += 1
                 self.remaining -= 1
-                return
+                return GuessResult.CORRECT
 
         self.life -= 1  # Incorrect guess, lose a life
+        return GuessResult.INCORRECT
 
     def get_game_state(self) -> dict:
         """Returns the current game state as a dictionary.

@@ -5,7 +5,6 @@ from image_processor_alteration import (
     ColourShift,
     BlurEffect,
     BrightnessChange)
-import numpy as np
 import cv2 as cv
 import random
 from PIL import Image

@@ -36,10 +36,6 @@ class GameUI(tk.Tk):
         self.bind("<F11>", lambda e: self.toggle_fullscreen())
         self.bind("<Escape>", lambda e: self.exit_fullscreen())
 
-    # =========================================================
-    # MENU
-    # =========================================================
-
     def _build_menu(self):
         """Builds the menu bar with File, View, and Help options."""
         menubar = tk.Menu(self)
@@ -78,10 +74,6 @@ class GameUI(tk.Tk):
         menubar.add_cascade(label="Help", menu=helpmenu)
 
         self.config(menu=menubar)
-
-    # =========================================================
-    # HEADER
-    # =========================================================
 
     def _build_header(self):
         """
@@ -155,10 +147,6 @@ class GameUI(tk.Tk):
             side="right",
             padx=20
         )
-
-    # =========================================================
-    # BODY
-    # =========================================================
 
     def _build_body(self):
 
@@ -235,10 +223,6 @@ class GameUI(tk.Tk):
         self.output_canvas.pack(pady=10)
         self.output_canvas.bind("<Button-1>", self._on_canvas_click)
 
-    # =========================================================
-    # FULLSCREEN
-    # =========================================================
-
     def toggle_fullscreen(self):
 
         self.is_fullscreen = not self.is_fullscreen
@@ -268,21 +252,19 @@ class GameUI(tk.Tk):
         self.controller.on_image_selected(file_path)
 
     # =========================================================
-    # IMAGE DISPLAY
+    # DISPLAY
     # =========================================================
 
     def load_new_images(self, img, altered_img):
         """Updates the preview canvas with the new image."""
-        resized_image = self.resize_to_fit(img, CANVAS_WIDTH, CANVAS_HEIGHT)
-        display_image = ImageTk.PhotoImage(resized_image)
+        display_image = ImageTk.PhotoImage(img)
         self.tk_original_image_resized = display_image
-        
-        resized_altered_image = self.resize_to_fit(altered_img, CANVAS_WIDTH, CANVAS_HEIGHT)
-        display_altered_image = ImageTk.PhotoImage(resized_altered_image)
+
+        display_altered_image = ImageTk.PhotoImage(altered_img)
         self.tk_altered_image_resized = display_altered_image
 
         # get rectangle coordinates for image to save & compare with clicks later
-        img_w, img_h = resized_altered_image.size
+        img_w, img_h = altered_img.size
         offset_x = 250 - img_w // 2
         offset_y = 0
         self.image_bounds = (offset_x, offset_y, offset_x + img_w, offset_y + img_h)
@@ -309,11 +291,6 @@ class GameUI(tk.Tk):
         self.remaining_var.set(f"Remaining: {remaining}")
         self.score_var.set(f"Score: {score}")
 
-    def resize_to_fit(self, img: Image.Image, max_w: int, max_h: int) -> Image.Image:
-        img = img.copy()
-        img.thumbnail((max_w, max_h), Image.LANCZOS)
-        return img
-
     # =========================================================
     # EVENT HANDLERS
     # =========================================================
@@ -326,3 +303,10 @@ class GameUI(tk.Tk):
         if not (x1 <= event.x <= x2 and y1 <= event.y <= y2):
             return  # ignore clicks on non image area
         self.controller.handle_click(event.x - x1, event.y - y1) # adjust click coordinates to be relative to the image
+    
+    def draw_circle(self, x: int, y: int, color: str):
+        self.output_canvas.create_oval(
+            x-25, y-25, x+25, y+25,
+            outline=color,
+            width=2
+        )
