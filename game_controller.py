@@ -1,5 +1,6 @@
 """A module that holds the GameController class, which connects the game logic and the UI.
 """
+from enums import GuessResult
 from game import Game
 from game_ui import GameUI
 from image_processor import ImageProcessor
@@ -18,7 +19,9 @@ class GameController:
 
     def handle_click(self, x: int, y: int) -> None:
         """Handles a click on the modified image at the given coordinates."""
-        self.game.guess(x, y)
+        result = self.game.guess(x, y)
+        if result == GuessResult.CORRECT:
+            self.ui.draw_circle(x, y, "red")
         state = self.game.get_game_state()
         self.ui.update_display(**state)
 

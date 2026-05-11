@@ -305,6 +305,8 @@ class GameUI(tk.Tk):
         self.controller.handle_click(event.x - x1, event.y - y1) # adjust click coordinates to be relative to the image
     
     def draw_circle(self, x: int, y: int, color: str):
+        """Draws a circle on the altered image canvas
+            at the specified coordinates with the given color."""
         self.output_canvas.create_oval(
             x-25, y-25, x+25, y+25,
             outline=color,
