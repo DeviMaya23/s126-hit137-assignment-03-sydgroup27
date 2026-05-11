@@ -17,12 +17,10 @@ class Game:
         found_regions (list[tuple[int, int, int, int]]): A list of tuples representing
             the regions that have been found by the player.
             The tuple format is (x, y, width, height).
-        revealed (bool): A flag to indicate if player has chosen to reveal all altered regions.
     Functions:
         __init__(self, altered_regions: list[tuple[int, int, int, int]]): Initializes the game state.
         start_game(self, altered_regions: list[tuple[int, int, int, int]]) -> None: Sets up the game state for a new game.
         guess(self, x, y) -> GuessResult: Processes a player's guess at the given coordinates.
-        get_game_state(self) -> dict: Returns the current game state as a dictionary.
         get_all_altered_regions(self) -> list[tuple[int, int, int, int]]: Returns a list of all altered regions in the game.
 
     """
@@ -34,7 +32,6 @@ class Game:
         self.remaining = 0
         self.altered_regions = []
         self.found_regions = []
-        self.revealed = False
 
     def start_game(self, altered_regions: list[tuple[int, int, int, int]]) -> None:
         """
@@ -48,7 +45,6 @@ class Game:
         self.remaining = 5
         self.altered_regions = altered_regions
         self.found_regions = []
-        self.revealed = False
 
     def guess(self, x, y) -> GuessResult:
         """Processes a player's guess at the given coordinates.
@@ -56,7 +52,7 @@ class Game:
             x: The x-coordinate of the guess.
             y: The y-coordinate of the guess.
         """
-        if self.life <= 0 or self.revealed or self.remaining <= 0:
+        if self.life <= 0 or self.remaining <= 0:
             return GuessResult.GAME_OVER  # Game is already over, ignore further guesses
         for region in self.altered_regions:
             # Check if the guess is within the altered region
@@ -76,19 +72,26 @@ class Game:
             return GuessResult.LOSE  # No lives left, game over
         return GuessResult.INCORRECT
 
-    def get_game_state(self) -> dict:
-        """Returns the current game state as a dictionary.
+    def get_display_state(self) -> dict:
+        """Returns the values used for display state update as a dictionary.
         Returns:
-            A dictionary containing the current score, lives, and found regions.
+            A dictionary containing the current score, lives, remaining regions, and game over status.
         """
         return {
             'score': self.score,
             'life': self.life,
             'remaining': self.remaining,
+            'game_over': self.life <= 0 or self.remaining <= 0
+        }
+    
+    def get_regions(self) -> dict:
+        """Returns the found and altered regions as a dictionary.
+        Returns:
+            A dictionary containing the lists of found and altered regions.
+        """
+        return {
             'found_regions': self.found_regions,
-            'revealed_regions': self.altered_regions if self.revealed else [],
-            'revealed': self.revealed,
-            'game_over': self.life <= 0 or self.revealed or self.remaining <= 0
+            'altered_regions': self.altered_regions
         }
     
     def get_all_altered_regions(self) -> list[tuple[int, int, int, int]]:
@@ -102,6 +105,5 @@ class Game:
     def reveal(self) -> None:
         """Reveals all altered regions to the player."""
         self.remaining = 0
-        self.revealed = True
     
     
