@@ -319,7 +319,7 @@ class GameUI(tk.Tk):
         )
         
 
-    def update_display(self, score: int, life: int, remaining: int, found_regions: list, revealed_regions: list, revealed: bool, game_over: bool) -> None:
+    def update_display(self, score: int, life: int, remaining: int, game_over: bool) -> None:
         """
         Updates all relevant UI elements based on the current game state.
         """

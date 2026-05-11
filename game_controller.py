@@ -23,7 +23,7 @@ class GameController:
         # Adjust click coordinates for guessing logic
         x1, y1, _, _ = self.ui.image_bounds
         result = self.game.guess(x - x1, y - y1)
-        state = self.game.get_game_state()
+        state = self.game.get_display_state()
         
         if result == GuessResult.CORRECT:
             self.ui.draw_circle(x, y, "red")
@@ -65,7 +65,7 @@ class GameController:
         self.game.start_game(altered_regions)
         self.ui.load_new_images(img, altered_img)
         
-        state = self.game.get_game_state()
+        state = self.game.get_display_state()
         self.ui.update_display(**state)
         self.ui.update_status_bar("New image loaded! Find the altered regions by clicking on the right-side image.")
 
@@ -73,24 +73,23 @@ class GameController:
     def reveal_altered_regions(self) -> None:
         """Handles reveal button click to update game state and UI."""
         self.game.reveal()
-        self.game.get_all_altered_regions()
-        state = self.game.get_game_state()
-        found_regions = state['found_regions']
-        revealed_regions = state['revealed_regions']
+        regions = self.game.get_regions()
+        found_regions = regions['found_regions']
+        altered_regions = regions['altered_regions']
 
         x1, y1, _, _ = self.ui.image_bounds
 
-        for region in revealed_regions:
+        for region in altered_regions:
             # Calculate the center of the region for circle drawing
             x = region[0] + region[2] // 2
             y = region[1] + region[3] // 2
             if region not in found_regions:
                 self.ui.draw_circle(x + x1, y + y1, "blue")
         
-        self.ui.update_display(**state)
+        self.ui.update_display(**self.game.get_display_state())
 
     
     def is_game_in_progress(self) -> bool:
         """Checks if a game is currently in progress."""
-        state = self.game.get_game_state()
+        state = self.game.get_display_state()
         return not state['game_over']
