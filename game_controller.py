@@ -1,11 +1,8 @@
 """A module that holds the GameController class, which connects the game logic and the UI.
 """
-from dummy_image_processor import DummyImageProcessor
 from game import Game
 from game_ui import GameUI
-# from image_processor import ImageProcessor
-from PIL import Image, ImageTk
-
+from image_processor import ImageProcessor
 
 class GameController:
     """A class to represent the game controller, which connects the game logic and the UI.
@@ -30,10 +27,10 @@ class GameController:
 
         # TODO: validation of image
 
-        # TODO: remove this later, imageprocessing job
-        image_processor = DummyImageProcessor(image_path)
+        image_processor = ImageProcessor(image_path)
     
-        img, altered_img = image_processor.load_images(image_path)
+        img = image_processor.get_original_image()
+        altered_img = image_processor.get_processed_image()
         altered_regions = image_processor.get_altered_regions()
 
 

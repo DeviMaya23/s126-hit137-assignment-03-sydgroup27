@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from PIL import ImageTk, Image
+from constants import CANVAS_WIDTH, CANVAS_HEIGHT
 
 
 class GameUI(tk.Tk):
@@ -195,8 +196,8 @@ class GameUI(tk.Tk):
         # IMAGE PREVIEW
         self.preview_canvas = tk.Canvas(
             left_frame,
-            width=500,
-            height=500,
+            width=CANVAS_WIDTH,
+            height=CANVAS_HEIGHT,
             bg="black",
             highlightthickness=0
         )
@@ -225,8 +226,8 @@ class GameUI(tk.Tk):
         # OUTPUT IMAGE
         self.output_canvas = tk.Canvas(
             right_frame,
-            width=500,
-            height=500,
+            width=CANVAS_WIDTH,
+            height=CANVAS_HEIGHT,
             bg="black",
             highlightthickness=0
         )
@@ -272,11 +273,11 @@ class GameUI(tk.Tk):
 
     def load_new_images(self, img, altered_img):
         """Updates the preview canvas with the new image."""
-        resized_image = self.resize_to_fit(img, 500, 500)
+        resized_image = self.resize_to_fit(img, CANVAS_WIDTH, CANVAS_HEIGHT)
         display_image = ImageTk.PhotoImage(resized_image)
         self.tk_original_image_resized = display_image
         
-        resized_altered_image = self.resize_to_fit(altered_img, 500, 500)
+        resized_altered_image = self.resize_to_fit(altered_img, CANVAS_WIDTH, CANVAS_HEIGHT)
         display_altered_image = ImageTk.PhotoImage(resized_altered_image)
         self.tk_altered_image_resized = display_altered_image
 
@@ -324,4 +325,4 @@ class GameUI(tk.Tk):
         x1, y1, x2, y2 = self.image_bounds
         if not (x1 <= event.x <= x2 and y1 <= event.y <= y2):
             return  # ignore clicks on non image area
-        self.controller.handle_click(event.x, event.y)
+        self.controller.handle_click(event.x - x1, event.y - y1) # adjust click coordinates to be relative to the image
