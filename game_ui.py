@@ -1,251 +1,355 @@
-"""A class to represent the game user interface.
-"""
 import tkinter as tk
-
 from tkinter import filedialog, messagebox
-from PIL import Image, ImageTk
-import numpy as np
-
-from game_controller import GameController
+from PIL import ImageTk, Image
+from constants import CANVAS_WIDTH, CANVAS_HEIGHT
 
 
-class GameUI:
-    """A class to represent the game UI.
-    Attributes:
-        root (tk.Tk): The main Tkinter window.
-        original_canvas (tk.Canvas): Canvas displaying the original image.
-        modified_canvas (tk.Canvas): Canvas displaying the modified image.
-        remaining_label (tk.Label): Label showing remaining differences.
-        mistakes_label (tk.Label): Label showing current mistakes.
-        score_label (tk.Label): Label showing cumulative score.
-        controller (GameController): The game controller that connects the UI and game logic.
-    """
-    root: tk.Tk
-    original_canvas: tk.Canvas
-    modified_canvas: tk.Canvas
-    remaining_label: tk.Label
-    mistakes_label: tk.Label
-    score_label: tk.Label
-    controller: GameController
+class GameUI(tk.Tk):
+    """A class to represent the game UI."""
 
-    def __init__(self, controller: GameController):
-
+    def __init__(self, controller):
+        super().__init__()
         self.controller = controller
 
         # ================= WINDOW =================
-        self.root = tk.Tk()
-        self.root.title("Tkinter AI GUI")
-        self.root.geometry("1200x700")
-        self.root.configure(bg="#2b2b2b")
+        self.title("Matching Game")
+        self.geometry("1200x700")
+        self.configure(bg="#2b2b2b")
+        self.resizable(False, False)
 
-        # ================= TOP BAR =================
-        top_frame = tk.Frame(self.root, bg="#333333", height=80)
-        top_frame.pack(fill="x")
+        # ================= VARIABLES =================
 
-        self.mistakes_label = tk.Label(
-            top_frame,
-            text="Life: 0",
+        self.tk_original_image_resized = None
+        self.tk_altered_image_resized = None
+        self.life_var = tk.StringVar(value="Life: 0")
+        self.remaining_var = tk.StringVar(value="Remaining: 0")
+        self.score_var = tk.StringVar(value="Score: 0")
+
+        # ================= UI =================
+        self._build_menu()
+        self._build_header()
+        self._build_body()
+
+        # ================= FULLSCREEN =================
+        self.is_fullscreen = False
+
+        self.bind("<F11>", lambda e: self.toggle_fullscreen())
+        self.bind("<Escape>", lambda e: self.exit_fullscreen())
+
+    def _build_menu(self):
+        """Builds the menu bar with File, View, and Help options."""
+        menubar = tk.Menu(self)
+
+        # FILE
+        filemenu = tk.Menu(menubar, tearoff=0)
+        filemenu.add_command(label="Exit", command=self.destroy)
+        menubar.add_cascade(label="File", menu=filemenu)
+
+        # VIEW
+        viewmenu = tk.Menu(menubar, tearoff=0)
+
+        viewmenu.add_command(
+            label="Toggle Full Screen (F11)",
+            command=self.toggle_fullscreen
+        )
+
+        viewmenu.add_command(
+            label="Exit Full Screen (Esc)",
+            command=self.exit_fullscreen
+        )
+
+        menubar.add_cascade(label="View", menu=viewmenu)
+
+        # HELP
+        helpmenu = tk.Menu(menubar, tearoff=0)
+
+        helpmenu.add_command(
+            label="About",
+            command=lambda: messagebox.showinfo(
+                "About",
+                "Matching Game"
+            )
+        )
+
+        menubar.add_cascade(label="Help", menu=helpmenu)
+
+        self.config(menu=menubar)
+
+    def _build_header(self):
+        """
+        Builds the header section of the UI
+        which includes the life, remaining, 
+        and score labels, as well as the browse button."""
+
+        header = tk.Frame(
+            self,
+            bg="#333333",
+            height=80
+        )
+
+        header.pack(fill="x")
+
+        # LIFE
+        self.life_label = tk.Label(
+            header,
+            textvariable=self.life_var,
             fg="red",
             bg="#333333",
             font=("Arial", 18, "bold")
         )
-        self.mistakes_label.pack(side="left", padx=30, pady=20)
 
+        self.life_label.pack(
+            side="left",
+            padx=30,
+            pady=20
+        )
+
+        # REMAINING
         self.remaining_label = tk.Label(
-            top_frame,
-            text="Remaining: 5",
+            header,
+            textvariable=self.remaining_var,
             fg="red",
             bg="#333333",
             font=("Arial", 18, "bold")
         )
-        self.remaining_label.pack(side="left", padx=30)
 
+        self.remaining_label.pack(
+            side="left",
+            padx=30
+        )
+
+        # SCORE
         self.score_label = tk.Label(
-            top_frame,
-            text="Score: 0",
+            header,
+            textvariable=self.score_var,
             fg="red",
             bg="#333333",
             font=("Arial", 18, "bold")
         )
-        self.score_label.pack(side="left", padx=30)
 
-        # Browse Button
+        self.score_label.pack(
+            side="left",
+            padx=30
+        )
+
+        # BROWSE BUTTON
         browse_btn = tk.Button(
-            top_frame,
+            header,
             text="Browse",
-            command=self.load_image,
+            command=self._on_browse_click,
             bg="#555555",
             fg="white",
             font=("Arial", 12, "bold"),
             width=15
         )
-        browse_btn.pack(side="right", padx=30)
 
-        # ================= MAIN FRAME =================
-        main_frame = tk.Frame(self.root, bg="#2b2b2b")
-        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        browse_btn.pack(
+            side="right",
+            padx=20
+        )
+        
+        # BUTTON2
+        self.reveal_btn = tk.Button(
+            header,
+            text="Reveal",
+            command=self._on_reveal_click,
+            bg="#555555",
+            fg="white",
+            font=("Arial", 12, "bold"),
+            width=15,
+            state="disabled"
+        )
+
+        self.reveal_btn.pack(
+            side="right",
+            padx=20
+        )
+
+    def _build_body(self):
+
+        body = tk.Frame(
+            self,
+            bg="#2b2b2b"
+        )
+
+        body.pack(
+            fill="both",
+            expand=True,
+            padx=20,
+            pady=20
+        )
 
         # ================= LEFT PANEL =================
+
         left_frame = tk.LabelFrame(
-            main_frame,
-            text="Original",
+            body,
+            text="Original Image",
             fg="red",
             bg="#3a3a3a",
             font=("Arial", 18, "bold"),
             padx=10,
             pady=10
         )
-        left_frame.pack(side="left", expand=True, fill="both", padx=10)
 
-        self.original_canvas = tk.Canvas(
-            left_frame,
-            width=500,
-            height=350,
-            bg="black"
+        left_frame.pack(
+            side="left",
+            expand=True,
+            fill="both",
+            padx=10
         )
-        self.original_canvas.pack()
+
+        # IMAGE PREVIEW
+        self.preview_canvas = tk.Canvas(
+            left_frame,
+            width=CANVAS_WIDTH,
+            height=CANVAS_HEIGHT,
+            bg="black",
+            highlightthickness=0
+        )
+
+        self.preview_canvas.pack(pady=10)
 
         # ================= RIGHT PANEL =================
+
         right_frame = tk.LabelFrame(
-            main_frame,
-            text="Altered",
+            body,
+            text="Altered Image",
             fg="red",
             bg="#3a3a3a",
             font=("Arial", 18, "bold"),
             padx=10,
             pady=10
         )
-        right_frame.pack(side="right", expand=True, fill="both", padx=10)
 
-        self.modified_canvas = tk.Canvas(
+        right_frame.pack(
+            side="right",
+            expand=True,
+            fill="both",
+            padx=10
+        )
+
+        # OUTPUT IMAGE
+        self.output_canvas = tk.Canvas(
             right_frame,
-            width=500,
-            height=350,
-            bg="black"
-        )
-        self.modified_canvas.pack()
-
-        # CLICK EVENT
-        self.modified_canvas.bind("<Button-1>", self.on_click)
-
-        self.root.mainloop()
-
-    def load_image(self) -> None:
-        """Open image and start game"""
-
-        path = filedialog.askopenfilename(
-            filetypes=[("Image Files", "*.png *.jpg *.jpeg")]
+            width=CANVAS_WIDTH,
+            height=CANVAS_HEIGHT,
+            bg="black",
+            highlightthickness=0
         )
 
-        if path:
-            self.controller.load_image(path)
+        self.output_canvas.pack(pady=10)
+        self.output_canvas.bind("<Button-1>", self._on_canvas_click)
 
-    def display_images(self, original: np.ndarray, modified: np.ndarray) -> None:
-        """Display images on canvases"""
+    def toggle_fullscreen(self):
 
-        # Convert numpy arrays to PIL images
-        original_image = Image.fromarray(original)
-        modified_image = Image.fromarray(modified)
+        self.is_fullscreen = not self.is_fullscreen
+        self.attributes("-fullscreen", self.is_fullscreen)
 
-        # Resize
-        original_image = original_image.resize((500, 350))
-        modified_image = modified_image.resize((500, 350))
+    def exit_fullscreen(self):
 
-        # Convert to Tkinter images
-        self.original_photo = ImageTk.PhotoImage(original_image)
-        self.modified_photo = ImageTk.PhotoImage(modified_image)
+        self.is_fullscreen = False
+        self.attributes("-fullscreen", False)
+    # =========================================================
+    # DISPLAY
+    # =========================================================
 
-        # Display images
-        self.original_canvas.create_image(
+    def load_new_images(self, img, altered_img):
+        """Updates the preview canvas with the new image."""
+        display_image = ImageTk.PhotoImage(img)
+        self.tk_original_image_resized = display_image
+
+        display_altered_image = ImageTk.PhotoImage(altered_img)
+        self.tk_altered_image_resized = display_altered_image
+
+        # get rectangle coordinates for image to save & compare with clicks later
+        img_w, img_h = altered_img.size
+        offset_x = 250 - img_w // 2
+        offset_y = 0
+        self.image_bounds = (offset_x, offset_y, offset_x + img_w, offset_y + img_h)
+
+        # update canvas image
+        self.preview_canvas.delete("all")
+        self.preview_canvas.create_image(
+            250,
             0,
-            0,
-            anchor="nw",
-            image=self.original_photo
+            anchor="n",
+            image=display_image
         )
-
-        self.modified_canvas.create_image(
+        self.output_canvas.delete("all")
+        self.output_canvas.create_image(
+            250,
             0,
-            0,
-            anchor="nw",
-            image=self.modified_photo
+            anchor="n",
+            image=display_altered_image
         )
+        
 
-    def update_display(
-        self,
-        remaining: int,
-        mistakes: int,
-        score: int,
-        found_regions: list,
-        revealed_regions: list
-    ) -> None:
-        """Update game display"""
+    def update_display(self, score: int, life: int, remaining: int, found_regions: list, revealed_regions: list, revealed: bool, game_over: bool) -> None:
+        self.life_var.set(f"Life: {life}")
+        self.remaining_var.set(f"Remaining: {remaining}")
+        self.score_var.set(f"Score: {score}")
 
-        self.remaining_label.config(text=f"Remaining: {remaining}")
-        self.mistakes_label.config(text=f"Life: {mistakes}")
-        self.score_label.config(text=f"Score: {score}")
-
-        # Draw found regions
-        for (x, y, w, h) in found_regions:
-            self.draw_circle(
-                self.modified_canvas,
-                x + w // 2,
-                y + h // 2,
-                25,
-                "red"
-            )
-
-        # Draw revealed regions
-        for (x, y, w, h) in revealed_regions:
-            self.draw_circle(
-                self.modified_canvas,
-                x + w // 2,
-                y + h // 2,
-                25,
-                "blue"
-            )
-
-    def show_invalid_image_message(self) -> None:
-        """Show invalid image popup"""
-
-        messagebox.showerror(
-            "Error",
-            "Invalid image selected."
-        )
-
-    def show_game_over(self, win: bool) -> None:
-        """Show game over popup"""
-
-        if win:
-            messagebox.showinfo(
-                "Game Over",
-                "You Win!"
-            )
+        if game_over:
+            self.reveal_btn.config(state="disabled")
         else:
-            messagebox.showinfo(
-                "Game Over",
-                "Game Over!"
-            )
+            self.reveal_btn.config(state="normal")
 
-    def draw_circle(
-        self,
-        canvas: tk.Canvas,
-        x: int,
-        y: int,
-        radius: int,
-        colour: str
-    ) -> None:
-        """Draw circle"""
 
-        canvas.create_oval(
-            x - radius,
-            y - radius,
-            x + radius,
-            y + radius,
-            outline=colour,
-            width=3
+    def draw_circle(self, x: int, y: int, color: str):
+        """Draws a circle on the both canvas
+            at the specified coordinates with the given color."""
+        self.preview_canvas.create_oval(
+            x-25, y-25, x+25, y+25,
+            outline=color,
+            width=2
         )
 
-    def on_click(self, event):
-        """Handle mouse click"""
+        self.output_canvas.create_oval(
+            x-25, y-25, x+25, y+25,
+            outline=color,
+            width=2
+        )
+    
+    def show_popup(self, title: str, message: str, kind: str = "info") -> None:
+        match kind:
+            case "warning": messagebox.showwarning(title, message)
+            case "error": messagebox.showerror(title, message)
+            case _: messagebox.showinfo(title, message) 
 
+    # =========================================================
+    # EVENT HANDLERS
+    # =========================================================
+
+    def _on_canvas_click(self, event):
+        """Handle click events on the output canvas and print coordinates."""
+        print(f"Canvas clicked at coordinates: ({event.x}, {event.y})")
+
+        x1, y1, x2, y2 = self.image_bounds
+        if not (x1 <= event.x <= x2 and y1 <= event.y <= y2):
+            return  # ignore clicks on non image area
         self.controller.handle_click(event.x, event.y)
+    
+    
+    def _on_browse_click(self):
+        """
+        Opens a file dialog for the user to select an image,
+        then passes it to controller for processing.
+        """
+        file_path = filedialog.askopenfilename(
+            filetypes=[
+                ("Image files", "*.jpg *.jpeg *.png *.bmp"),
+            ]
+        )
+        if not file_path:
+            return
+        self.controller.on_image_selected(file_path)
+
+    def _on_reveal_click(self):
+        """Reveals all altered regions to the player.
+        Ends the game and disables further guesses.
+        """
+        self.reveal_btn.config(state="disabled")
+        self.controller.reveal_altered_regions()
+
+    
+

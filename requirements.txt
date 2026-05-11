@@ -3,8 +3,8 @@
 torch
 transformers
 pillow
-requests
-tkinter
+# requests
+# tkinter
 requests
 diffusers
 # tkinter is a built-in package (kept for reference)
