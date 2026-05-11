@@ -1,5 +1,3 @@
-
-
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from PIL import ImageTk, Image
@@ -20,7 +18,8 @@ class GameUI(tk.Tk):
 
         # ================= VARIABLES =================
 
-        self.tk_original_image = None
+        self.tk_original_image_resized = None
+        self.tk_altered_image_resized = None
         self.life_var = tk.StringVar(value="Life: 0")
         self.remaining_var = tk.StringVar(value="Remaining: 0")
         self.score_var = tk.StringVar(value="Score: 0")
@@ -41,7 +40,7 @@ class GameUI(tk.Tk):
     # =========================================================
 
     def _build_menu(self):
-
+        """Builds the menu bar with File, View, and Help options."""
         menubar = tk.Menu(self)
 
         # FILE
@@ -84,6 +83,10 @@ class GameUI(tk.Tk):
     # =========================================================
 
     def _build_header(self):
+        """
+        Builds the header section of the UI
+        which includes the life, remaining, 
+        and score labels, as well as the browse button."""
 
         header = tk.Frame(
             self,
@@ -193,7 +196,7 @@ class GameUI(tk.Tk):
         self.preview_canvas = tk.Canvas(
             left_frame,
             width=500,
-            height=350,
+            height=500,
             bg="black",
             highlightthickness=0
         )
@@ -223,12 +226,13 @@ class GameUI(tk.Tk):
         self.output_canvas = tk.Canvas(
             right_frame,
             width=500,
-            height=350,
+            height=500,
             bg="black",
             highlightthickness=0
         )
 
         self.output_canvas.pack(pady=10)
+        self.output_canvas.bind("<Button-1>", self._on_canvas_click)
 
     # =========================================================
     # FULLSCREEN
@@ -249,36 +253,75 @@ class GameUI(tk.Tk):
     # =========================================================
 
     def browse_image(self):
-
+        """
+        Opens a file dialog for the user to select an image,
+        then passes it to controller for processing.
+        """
         file_path = filedialog.askopenfilename(
             filetypes=[
                 ("Image files", "*.jpg *.jpeg *.png")
             ]
         )
-
         if not file_path:
             return
-
-        # self._show_preview(file_path)
-
         self.controller.on_image_selected(file_path)
 
     # =========================================================
     # IMAGE DISPLAY
     # =========================================================
 
-    def load_new_images(self, img):
+    def load_new_images(self, img, altered_img):
         """Updates the preview canvas with the new image."""
-        self.tk_original_image = img
+        resized_image = self.resize_to_fit(img, 500, 500)
+        display_image = ImageTk.PhotoImage(resized_image)
+        self.tk_original_image_resized = display_image
+        
+        resized_altered_image = self.resize_to_fit(altered_img, 500, 500)
+        display_altered_image = ImageTk.PhotoImage(resized_altered_image)
+        self.tk_altered_image_resized = display_altered_image
+
+        # get rectangle coordinates for image to save & compare with clicks later
+        img_w, img_h = resized_altered_image.size
+        offset_x = 250 - img_w // 2
+        offset_y = 0
+        self.image_bounds = (offset_x, offset_y, offset_x + img_w, offset_y + img_h)
+
+        # update canvas image
         self.preview_canvas.delete("all")
         self.preview_canvas.create_image(
+            250,
             0,
-            0,
-            anchor="nw",
-            image=img
+            anchor="n",
+            image=display_image
         )
+        self.output_canvas.delete("all")
+        self.output_canvas.create_image(
+            250,
+            0,
+            anchor="n",
+            image=display_altered_image
+        )
+        
 
     def update_display(self, score: int, life: int, remaining: int, found_regions: list, revealed_regions: list, revealed: bool) -> None:
         self.life_var.set(f"Life: {life}")
         self.remaining_var.set(f"Remaining: {remaining}")
         self.score_var.set(f"Score: {score}")
+
+    def resize_to_fit(self, img: Image.Image, max_w: int, max_h: int) -> Image.Image:
+        img = img.copy()
+        img.thumbnail((max_w, max_h), Image.LANCZOS)
+        return img
+
+    # =========================================================
+    # EVENT HANDLERS
+    # =========================================================
+
+    def _on_canvas_click(self, event):
+        """Handle click events on the output canvas and print coordinates."""
+        print(f"Canvas clicked at coordinates: ({event.x}, {event.y})")
+
+        x1, y1, x2, y2 = self.image_bounds
+        if not (x1 <= event.x <= x2 and y1 <= event.y <= y2):
+            return  # ignore clicks on non image area
+        self.controller.handle_click(event.x, event.y)

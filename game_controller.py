@@ -1,8 +1,9 @@
 """A module that holds the GameController class, which connects the game logic and the UI.
 """
+from dummy_image_processor import DummyImageProcessor
 from game import Game
 from game_ui import GameUI
-from image_processor import ImageProcessor
+# from image_processor import ImageProcessor
 from PIL import Image, ImageTk
 
 
@@ -20,7 +21,9 @@ class GameController:
 
     def handle_click(self, x: int, y: int) -> None:
         """Handles a click on the modified image at the given coordinates."""
-        pass
+        self.game.guess(x, y)
+        state = self.game.get_game_state()
+        self.ui.update_display(**state)
 
     def on_image_selected(self, image_path: str) -> None:
         """Handles a new image being selected by the user."""
@@ -28,13 +31,14 @@ class GameController:
         # TODO: validation of image
 
         # TODO: remove this later, imageprocessing job
-        image = Image.open(image_path).convert("RGB")
-        image = image.resize((500, 350))
-        img = ImageTk.PhotoImage(image)
+        image_processor = DummyImageProcessor(image_path)
+    
+        img, altered_img = image_processor.load_images(image_path)
+        altered_regions = image_processor.get_altered_regions()
 
-        self.game.start_game([])  # TODO: pass in altered regions from image processor
-        
-        self.ui.load_new_images(img)
+
+        self.game.start_game(altered_regions)
+        self.ui.load_new_images(img, altered_img)
         
         state = self.game.get_game_state()
         self.ui.update_display(**state)
