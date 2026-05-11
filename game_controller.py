@@ -13,7 +13,7 @@ class GameController:
         image_processor (ImageProcessor): The image processor that applies alterations.
     """
     def __init__(self):
-        self.game = Game([])
+        self.game = Game()
         self.ui = GameUI(self)
         self.image_processor = ImageProcessor()
 
@@ -39,10 +39,9 @@ class GameController:
             self.ui.show_popup("Congratulations!", "You've found all altered regions!")
             return
         elif result == GuessResult.LOSE:
-            print(state)
             self.ui.update_display(**state)
-            self.ui.update_status_bar("Game Over. You've lost all your lives. Click the Browse button (Ctrl+O) to start a new game.")
-            self.ui.show_popup("Game Over", "You've lost all your lives... Better luck next time!")
+            self.ui.update_status_bar("Game Over. You've lost all your attempts. Click the Browse button (Ctrl+O) to start a new game.")
+            self.ui.show_popup("Game Over", "You've lost all your attempts. Better luck next time!")
             self.reveal_altered_regions()    
             return
 
@@ -69,7 +68,8 @@ class GameController:
         state = self.game.get_game_state()
         self.ui.update_display(**state)
         self.ui.update_status_bar("New image loaded! Find the altered regions by clicking on the right-side image.")
-        
+
+
     def reveal_altered_regions(self) -> None:
         """Handles reveal button click to update game state and UI."""
         self.game.reveal()
@@ -88,3 +88,9 @@ class GameController:
                 self.ui.draw_circle(x + x1, y + y1, "blue")
         
         self.ui.update_display(**state)
+
+    
+    def is_game_in_progress(self) -> bool:
+        """Checks if a game is currently in progress."""
+        state = self.game.get_game_state()
+        return not state['game_over']

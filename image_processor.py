@@ -99,7 +99,7 @@ class ImageProcessor:
         return Image.fromarray(cv.cvtColor(self.processed_image, cv.COLOR_BGR2RGB))
 
     def get_altered_regions(self) -> list[tuple[int, int, int, int]]:
-        print("Altered regions:", self.altered_regions)  # Debug print to check altered regions 
+        """Returns the list of altered regions."""
         return self.altered_regions
     
     def resize_to_fit(self, img: Image.Image, max_w: int, max_h: int) -> Image.Image:

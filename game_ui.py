@@ -380,8 +380,6 @@ class GameUI(tk.Tk):
 
     def _on_canvas_click(self, event):
         """Handle click events on the output canvas and print coordinates."""
-        print(f"Canvas clicked at coordinates: ({event.x}, {event.y})")
-
         x1, y1, x2, y2 = self.image_bounds
         if not (x1 <= event.x <= x2 and y1 <= event.y <= y2):
             return  # ignore clicks on non image area
@@ -393,6 +391,12 @@ class GameUI(tk.Tk):
         Opens a file dialog for the user to select an image,
         then passes it to controller for processing.
         """
+
+        if self.controller.is_game_in_progress():
+            result = messagebox.askyesno("Start New Game", "Are you sure you want to start a new game? Your current progress will be lost (scores are kept).")
+            if not result:
+                return
+
         file_path = filedialog.askopenfilename(
             filetypes=[
                 ("Image files", "*.jpg *.jpeg *.png *.bmp"),
