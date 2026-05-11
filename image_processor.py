@@ -1,6 +1,10 @@
 """A class to represent image processor used by the game.
 """
-from image_processor_alteration import Alteration, ColourShift
+from image_processor_alteration import (
+    Alteration, 
+    ColourShift,
+    BlurEffect,
+    BrightnessChange)
 import numpy as np
 import cv2 as cv
 import random
@@ -66,23 +70,15 @@ class ImageProcessor:
                 (x, y, region_width, region_height)
             )
 
-            # Extract region
-            region = self.processed_image[
-                y:y + region_height,
-                x:x + region_width
-            ]
+            region = (x, y, region_width, region_height)
 
-            # Choose random alteration
             alteration = random.choice(self.alterations)
 
-            # Apply alteration
-            altered_region = alteration.apply(region)
-
-            # Put altered region back
-            self.processed_image[
-                y:y + region_height,
-                x:x + region_width
-            ] = altered_region
+            self.processed_image = alteration.apply(
+                self.processed_image,
+                region
+           )
+          
     def get_original_image(self) -> np.ndarray:
         return self.original_image
 
