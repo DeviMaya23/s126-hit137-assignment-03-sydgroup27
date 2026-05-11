@@ -14,7 +14,7 @@ class GameController:
         image_processor (ImageProcessor): The image processor that applies alterations.
     """
     def __init__(self):
-        # self.game = Game()
+        self.game = Game([])
         self.ui = GameUI(self)
         # self.image_processor = ImageProcessor()
 
@@ -27,11 +27,15 @@ class GameController:
 
         # TODO: validation of image
 
-
-
+        # TODO: remove this later, imageprocessing job
         image = Image.open(image_path).convert("RGB")
         image = image.resize((500, 350))
         img = ImageTk.PhotoImage(image)
+
+        self.game.start_game([])  # TODO: pass in altered regions from image processor
         
+        self.ui.load_new_images(img)
         
-        self.ui.update_display_new_image(img)
+        state = self.game.get_game_state()
+        self.ui.update_display(**state)
+        

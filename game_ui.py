@@ -20,7 +20,10 @@ class GameUI(tk.Tk):
 
         # ================= VARIABLES =================
 
-        self.tk_preview_image = None
+        self.tk_original_image = None
+        self.life_var = tk.StringVar(value="Life: 0")
+        self.remaining_var = tk.StringVar(value="Remaining: 0")
+        self.score_var = tk.StringVar(value="Score: 0")
 
         # ================= UI =================
         self._build_menu()
@@ -93,7 +96,7 @@ class GameUI(tk.Tk):
         # LIFE
         self.life_label = tk.Label(
             header,
-            text="Life: 0",
+            textvariable=self.life_var,
             fg="red",
             bg="#333333",
             font=("Arial", 18, "bold")
@@ -108,7 +111,7 @@ class GameUI(tk.Tk):
         # REMAINING
         self.remaining_label = tk.Label(
             header,
-            text="Remaining: 5",
+            textvariable=self.remaining_var,
             fg="red",
             bg="#333333",
             font=("Arial", 18, "bold")
@@ -122,7 +125,7 @@ class GameUI(tk.Tk):
         # SCORE
         self.score_label = tk.Label(
             header,
-            text="Score: 10",
+            textvariable=self.score_var,
             fg="red",
             bg="#333333",
             font=("Arial", 18, "bold")
@@ -171,7 +174,7 @@ class GameUI(tk.Tk):
 
         left_frame = tk.LabelFrame(
             body,
-            text="User Input Section",
+            text="Original Image",
             fg="red",
             bg="#3a3a3a",
             font=("Arial", 18, "bold"),
@@ -201,7 +204,7 @@ class GameUI(tk.Tk):
 
         right_frame = tk.LabelFrame(
             body,
-            text="Model Output Section",
+            text="Altered Image",
             fg="red",
             bg="#3a3a3a",
             font=("Arial", 18, "bold"),
@@ -264,7 +267,9 @@ class GameUI(tk.Tk):
     # IMAGE DISPLAY
     # =========================================================
 
-    def update_display(self, img):
+    def load_new_images(self, img):
+        """Updates the preview canvas with the new image."""
+        self.tk_original_image = img
         self.preview_canvas.delete("all")
         self.preview_canvas.create_image(
             0,
@@ -273,23 +278,7 @@ class GameUI(tk.Tk):
             image=img
         )
 
-    def _show_preview(self, image_path):
-
-        img = process_image(
-            image_path,
-            (500, 350)
-        )
-        self.tk_preview_image = ImageTk.PhotoImage(img)
-        self.preview_canvas.delete("all")
-        self.preview_canvas.create_image(
-            0,
-            0,
-            anchor="nw",
-            image=self.tk_preview_image
-        )
-
-
-def process_image(image_path, size=(224, 224)):
-    image = Image.open(image_path).convert("RGB")
-    image = image.resize(size)
-    return image
+    def update_display(self, score: int, life: int, remaining: int, found_regions: list, revealed_regions: list, revealed: bool) -> None:
+        self.life_var.set(f"Life: {life}")
+        self.remaining_var.set(f"Remaining: {remaining}")
+        self.score_var.set(f"Score: {score}")

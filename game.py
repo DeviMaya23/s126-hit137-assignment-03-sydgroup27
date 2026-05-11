@@ -32,7 +32,7 @@ class Game:
                 The tuple format is (x, y, width, height)
         """
         self.score = 0
-        self.start_game(altered_regions)
+        # self.start_game(altered_regions)
 
     def start_game(self, altered_regions: list[tuple[int, int, int, int]]) -> None:
         """Initialises the game state for a new game.
@@ -41,6 +41,7 @@ class Game:
                 The tuple format is (x, y, width, height)
         """
         self.life = 3
+        self.remaining = 5
         self.altered_regions = altered_regions
         self.found_regions = []
         self.revealed = False
@@ -61,6 +62,7 @@ class Game:
                     return  # Already found this region, skip the guess
                 self.found_regions.append(region)
                 self.score += 1
+                self.remaining -= 1
                 return
 
         self.life -= 1  # Incorrect guess, lose a life
@@ -73,7 +75,9 @@ class Game:
         return {
             'score': self.score,
             'life': self.life,
+            'remaining': self.remaining,
             'found_regions': self.found_regions,
+            'revealed_regions': self.altered_regions if self.revealed else [],
             'revealed': self.revealed
         }
     
