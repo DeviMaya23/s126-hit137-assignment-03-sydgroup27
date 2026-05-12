@@ -1,16 +1,18 @@
-"""A module that holds the GameController class, which connects the game logic and the UI.
-"""
+"""Game controller connecting game logic and UI."""
 from enums import GuessResult
 from game import Game
 from game_ui import GameUI
 from image_processor import ImageProcessor
 
+
 class GameController:
-    """A class to represent the game controller, which connects the game logic and the UI.
+    """A class to represent the game controller.
+    Connects the game logic and the UI.
+    Handles user interactions and updates the game state and UI accordingly.
     Attributes:
         game (Game): The game state and logic.
         ui (GameUI): The game user interface.
-        image_processor (ImageProcessor): The image processor that applies alterations.
+        image_processor (ImageProcessor): The image processor for alterations.
     """
     def __init__(self):
         self.game = Game()
@@ -18,13 +20,18 @@ class GameController:
         self.image_processor = ImageProcessor()
 
     def handle_click(self, x: int, y: int) -> None:
-        """Handles a click on the modified image at the given coordinates."""
+        """Handles a click on the modified image at the given coordinates.
+
+        Args:
+            x (int): The x-coordinate of the click.
+            y (int): The y-coordinate of the click.
+        """
 
         # Adjust click coordinates for guessing logic
         x1, y1, _, _ = self.ui.image_bounds
         result = self.game.guess(x - x1, y - y1)
         state = self.game.get_display_state()
-        
+
         if result == GuessResult.CORRECT:
             self.ui.draw_circle(x, y, "red")
             self.ui.update_status_bar("Correct guess! There is only {} altered regions left.".format(state['remaining']))
@@ -46,7 +53,6 @@ class GameController:
             return
 
         self.ui.update_display(**state)
-    
 
     def on_image_selected(self, image_path: str) -> None:
         """Handles a new image being selected by the user."""
@@ -54,21 +60,22 @@ class GameController:
         try:
             self.image_processor.load_image(image_path)
         except ValueError as e:
-            self.ui.show_popup("Error","Could not load image, please select a valid image file!", "error")
+            self.ui.show_popup(
+                "Error",
+                "Could not load image, please select a valid image file!", "error")
             self.ui.update_status_bar("Could not load image, please select a valid image file (*.jpg, *.jpeg, *.png, *.bmp).")
             return
-    
+
         img = self.image_processor.get_original_image()
         altered_img = self.image_processor.get_processed_image()
         altered_regions = self.image_processor.get_altered_regions()
 
         self.game.start_game(altered_regions)
         self.ui.load_new_images(img, altered_img)
-        
+
         state = self.game.get_display_state()
         self.ui.update_display(**state)
         self.ui.update_status_bar("New image loaded! Find the altered regions by clicking on the right-side image.")
-
 
     def reveal_altered_regions(self) -> None:
         """Handles reveal button click to update game state and UI."""
@@ -85,10 +92,9 @@ class GameController:
             y = region[1] + region[3] // 2
             if region not in found_regions:
                 self.ui.draw_circle(x + x1, y + y1, "blue")
-        
+
         self.ui.update_display(**self.game.get_display_state())
 
-    
     def is_game_in_progress(self) -> bool:
         """Checks if a game is currently in progress."""
         state = self.game.get_display_state()

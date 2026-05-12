@@ -9,23 +9,34 @@ import cv2 as cv
 
 # parent class, to apply inheritance and polymorphism
 class Alteration:
-    #Base class for alterations
+    """Parent class for image alterations."""
     def apply(self, image: np.ndarray, region: tuple) -> np.ndarray:
         raise NotImplementedError
 
 
-#child class 1
 class ColourShift(Alteration):
+    """Class for colour shift alteration."""
+
     def apply(self, image: np.ndarray, region: tuple) -> np.ndarray:
-        
-        x,y,width,height = region
+        """Applies a subtle colour shift to the specified region.
+
+        Args:
+            image (np.ndarray): Input image from cv.imread
+            region (tuple): A tuple (x, y, width, height) defining the
+                region to alter.
+
+        Returns:
+            np.ndarray: The altered image with the colour shift applied.
+        """
+
+        x, y, width, height = region
 
         altered_image = image.copy()
 
-        #Extract region
+        # Extract region
         roi = altered_image[y:y + height, x:x + width]
 
-         # Small colour shift
+        # Small colour shift
         roi[:, :, 1] = np.clip(
             roi[:, :, 1] + 10,
             0,
@@ -35,13 +46,22 @@ class ColourShift(Alteration):
 
         return altered_image
 
-#child class 2
 
 class BlurEffect(Alteration):
-    """Applies a subtle blur effect."""
+    """Class for applying a blur effect."""
 
     def apply(self, image: np.ndarray,
               region: tuple) -> np.ndarray:
+        """Applies a subtle blur effect to the specified region.
+
+        Args:
+            image (np.ndarray): Input image from cv.imread
+            region (tuple): A tuple (x, y, width, height) defining the
+                region to alter.
+
+        Returns:
+            np.ndarray: The altered image with the blur effect applied.
+        """
 
         x, y, width, height = region
 
@@ -56,12 +76,20 @@ class BlurEffect(Alteration):
 
         return altered_image
 
-# Child Class 3
+
 class BrightnessChange(Alteration):
-    """Slightly changes brightness."""
+    """Class for slightly changing brightness."""
 
     def apply(self, image: np.ndarray,
               region: tuple) -> np.ndarray:
+        """Applies a slight brightness change to the specified region.
+        Args:
+            image (np.ndarray): Input image from cv.imread
+            region (tuple): A tuple (x, y, width, height) defining the
+                region to alter.
+        Returns:
+            np.ndarray: The altered image with the brightness change applied.
+        """
 
         x, y, width, height = region
 
