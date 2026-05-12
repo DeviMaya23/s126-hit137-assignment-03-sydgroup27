@@ -9,8 +9,9 @@ from image_processor_alteration import (
     BrightnessChange)
 import cv2 as cv
 import random
+import numpy as np
 from PIL import Image
-from constants import CANVAS_WIDTH, CANVAS_HEIGHT
+from constants import ALTERED_REGION_COUNT, CANVAS_WIDTH, CANVAS_HEIGHT
 
 
 class ImageProcessor:
@@ -42,7 +43,7 @@ class ImageProcessor:
             image_path (str): The file path of the image to be processed.
         """
         # Load the image
-        self.original_image = cv.imread(image_path)
+        self.original_image = self._cv_imread(image_path)
 
         if self.original_image is None:
             raise ValueError(f"Could not load image from path: {image_path}")
@@ -60,8 +61,8 @@ class ImageProcessor:
         # store altered regions
         self.altered_regions = []
 
-        # Apply 5 random alterations
-        self.apply_random_alterations(5)
+        # Apply random alterations
+        self.apply_random_alterations(ALTERED_REGION_COUNT)
 
     def apply_random_alterations(self, num_alterations: int):
         """Applies a specified number of random alterations to the image.
@@ -121,4 +122,12 @@ class ImageProcessor:
         """
         img = img.copy()
         img.thumbnail((max_w, max_h), Image.LANCZOS)
+        return img
+    
+    def _cv_imread(self, path: str) -> np.ndarray:
+        """Reads an image from a file path using OpenCV, handling non-ASCII file names."""
+        stream = np.fromfile(path, dtype=np.uint8)
+        img = cv.imdecode(stream, cv.IMREAD_COLOR)
+        if img is None:
+            raise ValueError(f"Failed to load image: {path}")
         return img
