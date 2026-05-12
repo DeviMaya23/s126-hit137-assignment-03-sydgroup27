@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
-from PIL import ImageTk, Image
+from PIL import ImageTk
 from constants import CANVAS_WIDTH, CANVAS_HEIGHT
 
 
@@ -11,30 +11,33 @@ class GameUI(tk.Tk):
         super().__init__()
         self.controller = controller
 
-        # ================= WINDOW =================
+        # Window
         self.title("Pictomatchy")
         self.geometry("1200x700")
         self.configure(bg="#2b2b2b")
         self.resizable(False, False)
 
-        # ================= VARIABLES =================
+        # Attributes & Window Variables
 
         self.tk_original_image_resized = None
         self.tk_altered_image_resized = None
         self.life_var = tk.StringVar(value="Life: 0")
         self.remaining_var = tk.StringVar(value="Remaining: 0")
         self.score_var = tk.StringVar(value="Score: 0")
-        self.status_var = tk.StringVar(value="Welcome to Pictomatchy! Start by clicking the Browse button (Ctrl+O) to select an image.")
+        self.status_var = tk.StringVar(
+           value="Welcome to Pictomatchy! Start by clicking the Browse button "
+                 "(Ctrl+O) to select an image."
+        )
 
-        # ================= UI =================
+        # UI Layout
         self._build_menu()
         self._build_header()
         self._build_status_bar()
         self._build_body()
 
-        # ================= FULLSCREEN =================
         self.is_fullscreen = False
 
+        # Event Bindings
         self.bind("<F11>", lambda e: self.toggle_fullscreen())
         self.bind("<Escape>", lambda e: self.exit_fullscreen())
         self.bind("<Control-o>", lambda e: self._on_browse_click())
@@ -85,7 +88,7 @@ class GameUI(tk.Tk):
     def _build_header(self):
         """
         Builds the header section of the UI
-        which includes the life, remaining, 
+        which includes the life, remaining,
         and score labels, as well as the browse button."""
 
         header = tk.Frame(
@@ -154,7 +157,7 @@ class GameUI(tk.Tk):
             side="right",
             padx=20
         )
-        
+
         # BUTTON2
         self.reveal_btn = tk.Button(
             header,
@@ -296,11 +299,12 @@ class GameUI(tk.Tk):
         display_altered_image = ImageTk.PhotoImage(altered_img)
         self.tk_altered_image_resized = display_altered_image
 
-        # get rectangle coordinates for image to save & compare with clicks later
+        # get rectangle coordinates for image to save & compare with clicks
         img_w, img_h = altered_img.size
         offset_x = 250 - img_w // 2
         offset_y = 0
-        self.image_bounds = (offset_x, offset_y, offset_x + img_w, offset_y + img_h)
+        self.image_bounds = (
+            offset_x, offset_y, offset_x + img_w, offset_y + img_h)
 
         # update canvas image
         self.preview_canvas.delete("all")
@@ -317,13 +321,12 @@ class GameUI(tk.Tk):
             anchor="n",
             image=display_altered_image
         )
-        
 
-    def update_display(self, score: int, life: int, remaining: int, game_over: bool) -> None:
-        """
-        Updates all relevant UI elements based on the current game state.
-        """
-        
+    def update_display(
+            self, score: int, life: int, remaining: int, game_over: bool
+            ) -> None:
+        """Updates all relevant UI elements based on the current game state."""
+
         self.life_var.set(f"Life: {life}")
         self.remaining_var.set(f"Remaining: {remaining}")
         self.score_var.set(f"Score: {score}")
@@ -333,16 +336,14 @@ class GameUI(tk.Tk):
         else:
             self.reveal_btn.config(state="normal")
 
-    
     def update_status_bar(self, message: str) -> None:
         """Updates the status bar with the given message."""
         self.status_var.set(message)
 
-
     def draw_circle(self, x: int, y: int, color: str):
         """
         Draws a circle on the both canvas.
-        Circle size is fixed at 50x50. 
+        Circle size is fixed at 50x50.
         Coordinates (x, y) represent the center of the circle.
         Args:
             x: The x-coordinate of the center of the circle.
@@ -360,7 +361,7 @@ class GameUI(tk.Tk):
             outline=color,
             width=2
         )
-    
+
     def show_popup(self, title: str, message: str, kind: str = "info") -> None:
         """
         Displays a popup message to the user.
@@ -372,20 +373,16 @@ class GameUI(tk.Tk):
         match kind:
             case "warning": messagebox.showwarning(title, message)
             case "error": messagebox.showerror(title, message)
-            case _: messagebox.showinfo(title, message) 
+            case _: messagebox.showinfo(title, message)
 
-    # =========================================================
-    # EVENT HANDLERS
-    # =========================================================
-
+    # Event Handlers
     def _on_canvas_click(self, event):
         """Handle click events on the output canvas and print coordinates."""
         x1, y1, x2, y2 = self.image_bounds
         if not (x1 <= event.x <= x2 and y1 <= event.y <= y2):
             return  # ignore clicks on non image area
         self.controller.handle_click(event.x, event.y)
-    
-    
+
     def _on_browse_click(self):
         """
         Opens a file dialog for the user to select an image,
@@ -414,6 +411,3 @@ class GameUI(tk.Tk):
         self.reveal_btn.config(state="disabled")
         self.controller.reveal_altered_regions()
         self.update_status_bar("All altered regions revealed! You can start a new game with the Browse button (Ctrl+O).")
-
-    
-
