@@ -1,6 +1,9 @@
 # requirements.txt includes all the required packages for the project
-#opencv for image
+# ttkbootstrap for UI
+ttkbootstrap
+
+# opencv for image processing
 opencv-python
-#visualization
+# visualization
 matplotlib
 numpy

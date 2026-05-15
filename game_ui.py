@@ -1,20 +1,22 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
+import ttkbootstrap as ttk
+from ttkbootstrap.constants import *
 from PIL import ImageTk
 from constants import CANVAS_WIDTH, CANVAS_HEIGHT
 
 
-class GameUI(tk.Tk):
+class GameUI(ttk.Window):
     """A class to represent the game UI."""
 
     def __init__(self, controller):
-        super().__init__()
+        super().__init__(themename="solar")
         self.controller = controller
 
         # Window
         self.title("Pictomatchy")
         self.geometry("1200x700")
-        self.configure(bg="#2b2b2b")
+        # self.configure(bg="#2b2b2b")
         self.resizable(False, False)
 
         # Attributes & Window Variables
@@ -91,21 +93,17 @@ class GameUI(tk.Tk):
         which includes the life, remaining,
         and score labels, as well as the browse button."""
 
-        header = tk.Frame(
+        header = ttk.Frame(
             self,
-            bg="#333333",
             height=80
         )
 
         header.pack(fill="x")
 
         # LIFE
-        self.life_label = tk.Label(
+        self.life_label = ttk.Label(
             header,
             textvariable=self.life_var,
-            fg="red",
-            bg="#333333",
-            font=("Arial", 18, "bold")
         )
 
         self.life_label.pack(
@@ -115,12 +113,9 @@ class GameUI(tk.Tk):
         )
 
         # REMAINING
-        self.remaining_label = tk.Label(
+        self.remaining_label = ttk.Label(
             header,
             textvariable=self.remaining_var,
-            fg="red",
-            bg="#333333",
-            font=("Arial", 18, "bold")
         )
 
         self.remaining_label.pack(
@@ -129,12 +124,9 @@ class GameUI(tk.Tk):
         )
 
         # SCORE
-        self.score_label = tk.Label(
+        self.score_label = ttk.Label(
             header,
             textvariable=self.score_var,
-            fg="red",
-            bg="#333333",
-            font=("Arial", 18, "bold")
         )
 
         self.score_label.pack(
@@ -143,13 +135,10 @@ class GameUI(tk.Tk):
         )
 
         # BROWSE BUTTON
-        browse_btn = tk.Button(
+        browse_btn = ttk.Button(
             header,
             text="Browse",
             command=self._on_browse_click,
-            bg="#555555",
-            fg="white",
-            font=("Arial", 12, "bold"),
             width=15
         )
 
@@ -159,13 +148,10 @@ class GameUI(tk.Tk):
         )
 
         # BUTTON2
-        self.reveal_btn = tk.Button(
+        self.reveal_btn = ttk.Button(
             header,
             text="Reveal",
             command=self._on_reveal_click,
-            bg="#555555",
-            fg="white",
-            font=("Arial", 12, "bold"),
             width=15,
             state="disabled"
         )
@@ -177,9 +163,8 @@ class GameUI(tk.Tk):
 
     def _build_body(self):
 
-        body = tk.Frame(
+        body = ttk.Frame(
             self,
-            bg="#2b2b2b"
         )
 
         body.pack(
@@ -191,21 +176,17 @@ class GameUI(tk.Tk):
 
         # ================= LEFT PANEL =================
 
-        left_frame = tk.LabelFrame(
+        left_frame = ttk.Labelframe(
             body,
             text="Original Image",
-            fg="red",
-            bg="#3a3a3a",
-            font=("Arial", 18, "bold"),
-            padx=10,
-            pady=10
         )
 
         left_frame.pack(
             side="left",
             expand=True,
             fill="both",
-            padx=10
+            padx=10,
+            pady=10
         )
 
         # IMAGE PREVIEW
@@ -213,7 +194,6 @@ class GameUI(tk.Tk):
             left_frame,
             width=CANVAS_WIDTH,
             height=CANVAS_HEIGHT,
-            bg="black",
             highlightthickness=0
         )
 
@@ -221,21 +201,17 @@ class GameUI(tk.Tk):
 
         # ================= RIGHT PANEL =================
 
-        right_frame = tk.LabelFrame(
+        right_frame = ttk.Labelframe(
             body,
             text="Altered Image",
-            fg="red",
-            bg="#3a3a3a",
-            font=("Arial", 18, "bold"),
-            padx=10,
-            pady=10
         )
 
         right_frame.pack(
             side="right",
             expand=True,
             fill="both",
-            padx=10
+            padx=10,
+            pady=10
         )
 
         # OUTPUT IMAGE
@@ -243,7 +219,6 @@ class GameUI(tk.Tk):
             right_frame,
             width=CANVAS_WIDTH,
             height=CANVAS_HEIGHT,
-            bg="black",
             highlightthickness=0
         )
 
@@ -252,9 +227,8 @@ class GameUI(tk.Tk):
 
     def _build_status_bar(self):
         """Builds a status bar frame at the bottom of the window."""
-        status_bar = tk.Frame(
+        status_bar = ttk.Frame(
             self,
-            bg="#333333",
             height=25
         )
 
@@ -264,12 +238,9 @@ class GameUI(tk.Tk):
         )
         status_bar.pack_propagate(False)
 
-        status_label = tk.Label(
+        status_label = ttk.Label(
             status_bar,
             textvariable=self.status_var,
-            fg="white",
-            bg="#333333",
-            font=("Arial", 12)
         )
 
         status_label.pack(
