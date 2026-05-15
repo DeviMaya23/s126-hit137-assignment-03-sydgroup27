@@ -76,9 +76,9 @@ class GameUI(ttk.Window):
             command=lambda: messagebox.showinfo(
                 "About",
                 """Pictomatchy - Spot the Difference Game
-                Upload an image and find 5 altered spots by clicking on the right-side image.
+Upload an image and find 5 altered spots by clicking on the right-side image.
 
-                Developed by Sydney Group 27 for S126 HIT137 Assignment 3.
+Developed by Sydney Group 27 for S126 HIT137 Assignment 3.
                 """
             )
         )
@@ -95,7 +95,7 @@ class GameUI(ttk.Window):
 
         header = ttk.Frame(
             self,
-            height=80
+            height=80,
         )
 
         header.pack(fill="x")
@@ -151,6 +151,7 @@ class GameUI(ttk.Window):
         self.reveal_btn = ttk.Button(
             header,
             text="Reveal",
+            bootstyle="warning",
             command=self._on_reveal_click,
             width=15,
             state="disabled"
@@ -179,6 +180,7 @@ class GameUI(ttk.Window):
         left_frame = ttk.Labelframe(
             body,
             text="Original Image",
+            bootstyle="info"
         )
 
         left_frame.pack(
@@ -204,6 +206,7 @@ class GameUI(ttk.Window):
         right_frame = ttk.Labelframe(
             body,
             text="Altered Image",
+            bootstyle="info"
         )
 
         right_frame.pack(
@@ -229,6 +232,7 @@ class GameUI(ttk.Window):
         """Builds a status bar frame at the bottom of the window."""
         status_bar = ttk.Frame(
             self,
+            bootstyle="secondary",
             height=25
         )
 
@@ -241,6 +245,7 @@ class GameUI(ttk.Window):
         status_label = ttk.Label(
             status_bar,
             textvariable=self.status_var,
+            bootstyle="secondary-inverse"
         )
 
         status_label.pack(
@@ -349,6 +354,8 @@ class GameUI(ttk.Window):
     # Event Handlers
     def _on_canvas_click(self, event):
         """Handle click events on the output canvas and print coordinates."""
+        if not self.controller.is_game_in_progress():
+            return  # ignore clicks if game is not in progress
         x1, y1, x2, y2 = self.image_bounds
         if not (x1 <= event.x <= x2 and y1 <= event.y <= y2):
             return  # ignore clicks on non image area
