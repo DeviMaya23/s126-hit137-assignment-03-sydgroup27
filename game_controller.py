@@ -86,8 +86,6 @@ class GameController:
 
     def reveal_altered_regions(self) -> None:
         """Handles reveal button click to update game state and UI."""
-        if not self.is_game_in_progress():
-            return  # Ignore reveal, no game in progress
         self.game.reveal()
         regions = self.game.get_regions()
         found_regions = regions['found_regions']
