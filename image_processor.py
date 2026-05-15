@@ -179,10 +179,13 @@ class ImageProcessor:
             BGR image array.
 
         Raises:
-            ValueError: If the file cannot be decoded.
+            ValueError: If the file cannot be decoded or not found.
         """
-        stream = np.fromfile(path, dtype=np.uint8)
-        img = cv.imdecode(stream, cv.IMREAD_COLOR)
-        if img is None:
-            raise ValueError(f"Could not load image from path: {path}")
-        return img
+        try:
+            stream = np.fromfile(path, dtype=np.uint8)
+            img = cv.imdecode(stream, cv.IMREAD_COLOR)
+            if img is None:
+                raise ValueError(f"Could not load image from path: {path}")
+            return img
+        except FileNotFoundError:
+            raise ValueError(f"File not found: {path}")

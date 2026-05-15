@@ -1,37 +1,40 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
+import ttkbootstrap as ttk
+from ttkbootstrap.constants import *
 from PIL import ImageTk
 from constants import CANVAS_WIDTH, CANVAS_HEIGHT
 
 
-class GameUI(tk.Tk):
+class GameUI(ttk.Window):
     """A class to represent the game UI."""
 
     def __init__(self, controller):
-        super().__init__()
+        super().__init__(themename="solar")
         self.controller = controller
 
         # Window
         self.title("Pictomatchy")
         self.geometry("1200x700")
-        self.configure(bg="#2b2b2b")
         self.resizable(False, False)
 
         # Attributes & Window Variables
 
         self.tk_original_image_resized = None
         self.tk_altered_image_resized = None
-        self.life_var = tk.StringVar(value="Life: 0")
-        self.remaining_var = tk.StringVar(value="Remaining: 0")
-        self.score_var = tk.StringVar(value="Score: 0")
+        self.life_var = tk.StringVar(value="0")
+        self.remaining_var = tk.StringVar(value="0")
+        self.score_var = tk.StringVar(value="0")
         self.status_var = tk.StringVar(
            value="Welcome to Pictomatchy! Start by clicking the Browse button "
                  "(Ctrl+O) to select an image."
         )
 
         # UI Layout
+        self._configure_styles()
         self._build_menu()
         self._build_header()
+        ttk.Separator(self, orient="horizontal", bootstyle="secondary").pack(fill="x")
         self._build_status_bar()
         self._build_body()
 
@@ -41,6 +44,13 @@ class GameUI(tk.Tk):
         self.bind("<F11>", lambda e: self.toggle_fullscreen())
         self.bind("<Escape>", lambda e: self.exit_fullscreen())
         self.bind("<Control-o>", lambda e: self._on_browse_click())
+
+    def _configure_styles(self):
+        """Configures custom styles for the UI elements."""
+        style = ttk.Style()
+        style.configure("TLabel", font=("", 11))
+        style.configure("TButton", font=("", 11))
+        style.configure("TLabelframe.Label", font=("", 11, "bold"))
 
     def _build_menu(self):
         """Builds the menu bar with File, View, and Help options."""
@@ -74,9 +84,9 @@ class GameUI(tk.Tk):
             command=lambda: messagebox.showinfo(
                 "About",
                 """Pictomatchy - Spot the Difference Game
-                Upload an image and find 5 altered spots by clicking on the right-side image.
+Upload an image and find 5 altered spots by clicking on the right-side image.
 
-                Developed by Sydney Group 27 for S126 HIT137 Assignment 3.
+Developed by Sydney Group 27 for S126 HIT137 Assignment 3.
                 """
             )
         )
@@ -91,95 +101,66 @@ class GameUI(tk.Tk):
         which includes the life, remaining,
         and score labels, as well as the browse button."""
 
-        header = tk.Frame(
-            self,
-            bg="#333333",
-            height=80
-        )
+        header = ttk.Frame(self)
+        header.pack(fill="x", padx=20, pady=(10, 0))
 
-        header.pack(fill="x")
+        # Stat cards
+        self.life_card = self._build_stat_card(header, "Life", self.life_var, "danger")
+        self._build_stat_card(header, "Remaining", self.remaining_var, "warning")
+        self.score_card = self._build_stat_card(header, "Score", self.score_var, "success")
 
-        # LIFE
-        self.life_label = tk.Label(
+        self.browse_btn = ttk.Button(
             header,
-            textvariable=self.life_var,
-            fg="red",
-            bg="#333333",
-            font=("Arial", 18, "bold")
-        )
-
-        self.life_label.pack(
-            side="left",
-            padx=30,
-            pady=20
-        )
-
-        # REMAINING
-        self.remaining_label = tk.Label(
-            header,
-            textvariable=self.remaining_var,
-            fg="red",
-            bg="#333333",
-            font=("Arial", 18, "bold")
-        )
-
-        self.remaining_label.pack(
-            side="left",
-            padx=30
-        )
-
-        # SCORE
-        self.score_label = tk.Label(
-            header,
-            textvariable=self.score_var,
-            fg="red",
-            bg="#333333",
-            font=("Arial", 18, "bold")
-        )
-
-        self.score_label.pack(
-            side="left",
-            padx=30
-        )
-
-        # BROWSE BUTTON
-        browse_btn = tk.Button(
-            header,
-            text="Browse",
+            text="📂  Browse",
+            bootstyle="primary",
             command=self._on_browse_click,
-            bg="#555555",
-            fg="white",
-            font=("Arial", 12, "bold"),
             width=15
         )
 
-        browse_btn.pack(
-            side="right",
-            padx=20
-        )
+        self.browse_btn.pack(side="right", padx=(10, 0), pady=10)
 
-        # BUTTON2
-        self.reveal_btn = tk.Button(
+        self.reveal_btn = ttk.Button(
             header,
-            text="Reveal",
+            text="👁  Reveal",
+            bootstyle="warning",
             command=self._on_reveal_click,
-            bg="#555555",
-            fg="white",
-            font=("Arial", 12, "bold"),
             width=15,
             state="disabled"
         )
 
-        self.reveal_btn.pack(
-            side="right",
-            padx=20
-        )
+        self.reveal_btn.pack(side="right", padx=10, pady=10)
+
+    def _build_stat_card(self, parent, title, var, bootstyle):
+        """Helper function to build a stat card with a title and value."""
+        card = ttk.Frame(parent, bootstyle=bootstyle, padding=(16, 4))
+        card.pack(side="left", padx=(0, 20), pady=10)
+        ttk.Label(
+            card, text=title, font=("", 11, "bold"),
+            bootstyle=f"{bootstyle}-inverse"
+        ).pack()
+        ttk.Label(
+            card, textvariable=var, font=("", 24, "bold"),
+            bootstyle=f"{bootstyle}-inverse"
+        ).pack()
+        return card
+
+    def _flash_card(self, card, original_bootstyle):
+        """Flashes a card by temporarily changing its style."""
+        card.configure(bootstyle="light")
+        for child in card.winfo_children():
+            child.configure(bootstyle="light-inverse")
+
+        def revert():
+            card.configure(bootstyle=original_bootstyle)
+            for child in card.winfo_children():
+                child.configure(bootstyle=f"{original_bootstyle}-inverse")
+
+        self.after(400, revert)
 
     def _build_body(self):
-
-        body = tk.Frame(
+        """Builds the main body of the UI which contains the original and altered image canvases."""
+        body = ttk.Frame(
             self,
-            bg="#2b2b2b"
         )
 
         body.pack(
@@ -189,53 +170,45 @@ class GameUI(tk.Tk):
             pady=20
         )
 
-        # ================= LEFT PANEL =================
-
-        left_frame = tk.LabelFrame(
+        left_frame = ttk.Labelframe(
             body,
             text="Original Image",
-            fg="red",
-            bg="#3a3a3a",
-            font=("Arial", 18, "bold"),
-            padx=10,
-            pady=10
+            bootstyle="info"
         )
 
         left_frame.pack(
             side="left",
             expand=True,
             fill="both",
-            padx=10
+            padx=10,
+            pady=10
         )
 
-        # IMAGE PREVIEW
         self.preview_canvas = tk.Canvas(
             left_frame,
             width=CANVAS_WIDTH,
             height=CANVAS_HEIGHT,
-            bg="black",
             highlightthickness=0
         )
 
         self.preview_canvas.pack(pady=10)
+        self._draw_canvas_placeholder(
+            self.preview_canvas,
+            "Browse an image to get started\n(Ctrl+O)"
+        )
 
-        # ================= RIGHT PANEL =================
-
-        right_frame = tk.LabelFrame(
+        right_frame = ttk.Labelframe(
             body,
             text="Altered Image",
-            fg="red",
-            bg="#3a3a3a",
-            font=("Arial", 18, "bold"),
-            padx=10,
-            pady=10
+            bootstyle="info"
         )
 
         right_frame.pack(
             side="right",
             expand=True,
             fill="both",
-            padx=10
+            padx=10,
+            pady=10
         )
 
         # OUTPUT IMAGE
@@ -243,18 +216,31 @@ class GameUI(tk.Tk):
             right_frame,
             width=CANVAS_WIDTH,
             height=CANVAS_HEIGHT,
-            bg="black",
             highlightthickness=0
         )
 
         self.output_canvas.pack(pady=10)
         self.output_canvas.bind("<Button-1>", self._on_canvas_click)
+        self._draw_canvas_placeholder(
+            self.output_canvas,
+            "Altered image will appear here\nClick to find the differences"
+        )
+
+    def _draw_canvas_placeholder(self, canvas, message):
+        """Draws a placeholder message on the given canvas."""
+        canvas.create_text(
+            CANVAS_WIDTH // 2, CANVAS_HEIGHT // 2,
+            text=message,
+            font=("", 10),
+            fill="#888888",
+            justify="center"
+        )
 
     def _build_status_bar(self):
         """Builds a status bar frame at the bottom of the window."""
-        status_bar = tk.Frame(
+        status_bar = ttk.Frame(
             self,
-            bg="#333333",
+            bootstyle="secondary",
             height=25
         )
 
@@ -264,12 +250,11 @@ class GameUI(tk.Tk):
         )
         status_bar.pack_propagate(False)
 
-        status_label = tk.Label(
+        status_label = ttk.Label(
             status_bar,
             textvariable=self.status_var,
-            fg="white",
-            bg="#333333",
-            font=("Arial", 12)
+            bootstyle="secondary-inverse",
+            font=("", 9)
         )
 
         status_label.pack(
@@ -279,7 +264,6 @@ class GameUI(tk.Tk):
         )
 
     def toggle_fullscreen(self):
-
         self.is_fullscreen = not self.is_fullscreen
         self.attributes("-fullscreen", self.is_fullscreen)
 
@@ -287,12 +271,14 @@ class GameUI(tk.Tk):
 
         self.is_fullscreen = False
         self.attributes("-fullscreen", False)
-    # =========================================================
-    # DISPLAY
-    # =========================================================
+        
+    # Display functions
+    def get_image_bounds(self):
+        """Returns the current image bounds as a tuple (x1, y1, x2, y2)."""
+        return self.image_bounds
 
     def load_new_images(self, img, altered_img):
-        """Updates the preview canvas with the new image."""
+        """Updates both canvases with original and altered images."""
         display_image = ImageTk.PhotoImage(img)
         self.tk_original_image_resized = display_image
 
@@ -327,14 +313,36 @@ class GameUI(tk.Tk):
             ) -> None:
         """Updates all relevant UI elements based on the current game state."""
 
-        self.life_var.set(f"Life: {life}")
-        self.remaining_var.set(f"Remaining: {remaining}")
-        self.score_var.set(f"Score: {score}")
+        self.life_var.set(str(life))
+        self.remaining_var.set(str(remaining))
+        self.score_var.set(str(score))
 
         if game_over:
             self.reveal_btn.config(state="disabled")
         else:
             self.reveal_btn.config(state="normal")
+
+    def start_loading(self) -> None:
+        """Disables browse button and shows loading state on canvases."""
+        self.browse_btn.configure(state="disabled")
+        for canvas in (self.preview_canvas, self.output_canvas):
+            canvas.delete("all")
+            self._draw_canvas_placeholder(canvas, "Loading image,\nplease wait...")
+        self.update_status_bar("Loading image, please wait...")
+        self.update_idletasks()
+
+    def stop_loading(self, restore_placeholders: bool = False) -> None:
+        """Re-enables browse button, optionally restoring canvas placeholders on failure."""
+        self.browse_btn.configure(state="normal")
+        if restore_placeholders:
+            self.preview_canvas.delete("all")
+            self._draw_canvas_placeholder(
+                self.preview_canvas, "Browse an image to get started\n(Ctrl+O)"
+            )
+            self.output_canvas.delete("all")
+            self._draw_canvas_placeholder(
+                self.output_canvas, "Altered image will appear here\nClick to find the differences"
+            )
 
     def update_status_bar(self, message: str) -> None:
         """Updates the status bar with the given message."""
@@ -361,6 +369,14 @@ class GameUI(tk.Tk):
             outline=color,
             width=2
         )
+    
+    def flash_life_card(self):
+        """Flashes the life card to indicate an incorrect guess"""
+        self._flash_card(self.life_card, "danger")
+
+    def flash_score_card(self):
+        """Flashes the score card to indicate a correct guess."""
+        self._flash_card(self.score_card, "success")
 
     def show_popup(self, title: str, message: str, kind: str = "info") -> None:
         """
@@ -378,6 +394,8 @@ class GameUI(tk.Tk):
     # Event Handlers
     def _on_canvas_click(self, event):
         """Handle click events on the output canvas and print coordinates."""
+        if not self.controller.is_game_in_progress():
+            return  # ignore clicks if game is not in progress
         x1, y1, x2, y2 = self.image_bounds
         if not (x1 <= event.x <= x2 and y1 <= event.y <= y2):
             return  # ignore clicks on non image area

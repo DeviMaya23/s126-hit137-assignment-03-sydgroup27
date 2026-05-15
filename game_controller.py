@@ -28,28 +28,32 @@ class GameController:
         """
 
         # Adjust click coordinates for guessing logic
-        x1, y1, _, _ = self.ui.image_bounds
+        x1, y1, _, _ = self.ui.get_image_bounds()
         result = self.game.guess(x - x1, y - y1)
         state = self.game.get_display_state()
 
         if result == GuessResult.CORRECT:
             self.ui.draw_circle(x, y, "red")
+            self.ui.flash_score_card()
             self.ui.update_status_bar("Correct guess! There is only {} altered regions left.".format(state['remaining']))
         elif result == GuessResult.INCORRECT:
+            self.ui.flash_life_card()
             self.ui.update_status_bar("Incorrect guess! Try again.")
         elif result == GuessResult.GAME_OVER:
             self.ui.update_status_bar("Game is already over. Please start a new game.")
         elif result == GuessResult.WIN:
             self.ui.draw_circle(x, y, "red")
+            self.ui.flash_score_card()
             self.ui.update_display(**state)
             self.ui.update_status_bar("Congratulations! You've found all altered regions. Click the Browse button (Ctrl+O) to start a new game.")
             self.ui.show_popup("Congratulations!", "You've found all altered regions!")
             return
         elif result == GuessResult.LOSE:
+            self.ui.flash_life_card()
             self.ui.update_display(**state)
             self.ui.update_status_bar("Game Over. You've lost all your attempts. Click the Browse button (Ctrl+O) to start a new game.")
             self.ui.show_popup("Game Over", "You've lost all your attempts. Better luck next time!")
-            self.reveal_altered_regions()    
+            self.reveal_altered_regions()
             return
 
         self.ui.update_display(**state)
@@ -57,9 +61,11 @@ class GameController:
     def on_image_selected(self, image_path: str) -> None:
         """Handles a new image being selected by the user."""
 
+        self.ui.start_loading()
         try:
             self.image_processor.load_image(image_path)
-        except ValueError as e:
+        except ValueError:
+            self.ui.stop_loading(restore_placeholders=True)
             self.ui.show_popup(
                 "Error",
                 "Could not load image, please select a valid image file!", "error")
@@ -71,6 +77,7 @@ class GameController:
         altered_regions = self.image_processor.get_altered_regions()
 
         self.game.start_game(altered_regions)
+        self.ui.stop_loading()
         self.ui.load_new_images(img, altered_img)
 
         state = self.game.get_display_state()
@@ -79,12 +86,14 @@ class GameController:
 
     def reveal_altered_regions(self) -> None:
         """Handles reveal button click to update game state and UI."""
+        if not self.is_game_in_progress():
+            return  # Ignore reveal, no game in progress
         self.game.reveal()
         regions = self.game.get_regions()
         found_regions = regions['found_regions']
         altered_regions = regions['altered_regions']
 
-        x1, y1, _, _ = self.ui.image_bounds
+        x1, y1, _, _ = self.ui.get_image_bounds()
 
         for region in altered_regions:
             # Calculate the center of the region for circle drawing
