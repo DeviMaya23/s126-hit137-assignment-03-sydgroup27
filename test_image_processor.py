@@ -18,7 +18,7 @@ class TestImageProcessor:
     def test_load_image_invalid_image(self):
         processor = ImageProcessor()
         with pytest.raises(ValueError):
-            processor.load_image("test_images/invalid_file.txt")
+            processor.load_image("test_images/actuallytxtfile.jpg")
 
     def test_load_image_valid_path(self):
         processor = ImageProcessor()
